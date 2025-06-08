@@ -1,0 +1,52 @@
+@PaymentsApi_HostAddress = https://localhost:7296
+
+GET {{PaymentsApi_HostAddress}}/test-endpoint
+Accept: application/json
+Content-Type: application/json
+
+###
+
+POST {{PaymentsApi_HostAddress}}/payment
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "fromAccountId": 1,
+  "toAccountId": 2,
+  "description": "Business dinner",
+  "currency": "EUR",
+  "amount": 100.0
+}
+
+###
+
+POST {{PaymentsApi_HostAddress}}/payment
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "fromAccountId": 2,
+  "toAccountId": 1,
+  "description": "Drinks in the bar",
+  "currency": "GBP",
+  "amount": 100.0
+}
+
+###
+
+POST {{PaymentsApi_HostAddress}}/payment
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "fromAccountId": 1,
+  "toAccountId": 2,
+  "description": "Shady deal",
+  "currency": "EUR",
+  "amount": 13000.0
+}
+
+###
