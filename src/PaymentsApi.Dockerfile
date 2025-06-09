@@ -24,7 +24,7 @@ RUN dotnet build "./PaymentsApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish -c $BUILD_CONFIGURATION -r linux-arm64 \
+RUN dotnet publish -c $BUILD_CONFIGURATION -r linux-x64 \
     -o /app/publish \
     --self-contained true \
     /p:UseAppHost=true \
