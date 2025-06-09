@@ -17,6 +17,7 @@ WORKDIR /src
 COPY ["PaymentsApi/PaymentsApi.csproj", "PaymentsApi/"]
 COPY ["PaymentsApi/appsettings.json", "PaymentsApi/"]
 COPY ["Models/Models.csproj", "Models/"]
+COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
 RUN dotnet restore "PaymentsApi/PaymentsApi.csproj"
 COPY . .
 WORKDIR "/src/PaymentsApi"
