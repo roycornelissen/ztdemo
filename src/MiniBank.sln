@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Containers", "Containers", "{D678CAF0-F723-45A1-8957-B029109786A3}"
 	ProjectSection(SolutionItems) = preProject
 		PaymentsApi.Dockerfile = PaymentsApi.Dockerfile
+		AccountsApi.Dockerfile = AccountsApi.Dockerfile
+		Processing.Dockerfile = Processing.Dockerfile
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Processing", "Processing\Processing.csproj", "{06CDBB7A-7A53-4997-AB5D-FF00D3F586B2}"
@@ -18,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentsApiTests", "PaymentsApiTests\PaymentsApiTests.csproj", "{8C4D78F7-60AD-461B-8158-C0C7492D729F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{9BC773D6-42D9-4048-AC8D-E8C6B1EF732E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountsApi", "AccountsApi\AccountsApi.csproj", "{6C2631DE-8ADE-4853-848E-FE5C61E820D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,5 +57,9 @@ Global
 		{9BC773D6-42D9-4048-AC8D-E8C6B1EF732E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BC773D6-42D9-4048-AC8D-E8C6B1EF732E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BC773D6-42D9-4048-AC8D-E8C6B1EF732E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C2631DE-8ADE-4853-848E-FE5C61E820D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C2631DE-8ADE-4853-848E-FE5C61E820D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C2631DE-8ADE-4853-848E-FE5C61E820D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C2631DE-8ADE-4853-848E-FE5C61E820D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,7 @@
+@AccountsApi_HostAddress = https://localhost:7137
+
+GET {{AccountsApi_HostAddress}}/accounts/
+Accept: application/json
+Authorization: Bearer {{accounts_auth_token}}
+
+###
