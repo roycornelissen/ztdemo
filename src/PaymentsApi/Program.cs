@@ -3,9 +3,9 @@ using Azure.Core;
 using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.Resource;
 using Models.Payments;
 using Models.ResultPattern;
 using PaymentsApi.Accounts;
@@ -41,16 +41,10 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .Build();
-    
-    options.AddPolicy("MakePaymentsPolicy", policy =>
-        policy.RequireAuthenticatedUser()
-            .RequireClaim(
-                "http://schemas.microsoft.com/identity/claims/scope",
-                "Payment.Create"));
+    // options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    //     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+    //     .RequireAuthenticatedUser()
+    //     .Build();
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -85,21 +79,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
+
 app.MapGet("/test-endpoint",
-    () => Results.Ok("Oops, this is a test endpoint!"));
+    () => Results.Ok("Oops, this is an unauthenticated test endpoint!"));
 
 app.MapPost("/payment",
         async ([FromBody] Payment payment, IHandlePayments handler, HttpContext context,
             CancellationToken cancellation) =>
         {
+            context.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+
             var result = await handler.Handle(payment, context.User, cancellation);
             return result.IsSuccess 
                 ? Results.Accepted() 
                 : result.Error.ToApiResult();
         })
     .RequireAuthorization("MakePaymentsPolicy");
-
-Console.WriteLine(builder.Configuration.GetValue<string>("Entra:Audience"));
 
 app.Run();
 
