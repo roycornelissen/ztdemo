@@ -75,7 +75,7 @@ az network nsg rule create `
   --protocol Tcp `
   --destination-address-prefixes $subnetFirewallPrefix `
   --destination-port-ranges '*' `
-  --source-address-prefixes $subnetFirewallPrefix `
+  --source-address-prefixes $subnetAppsPrefix `
   --description "Allow outbound traffic from app subnet to firewall subnet on port 443"
 
 # Associate NSG to private endpoints subnet (if not already associated)
@@ -83,6 +83,7 @@ az network vnet subnet update `
   --resource-group $rg `
   --vnet-name $vnet `
   --name $subnetPep `
+  --private-endpoint-network-policies Disabled `
   --network-security-group nsg-privateendpoints
 
 # Allow inbound traffic from $subnetApps to $subnetPep on port 443 (Inbound rule on nsg-privateendpoints)
@@ -98,3 +99,4 @@ az network nsg rule create `
   --destination-port-ranges 443 `
   --destination-address-prefixes $subnetPepPrefix `
   --description "Allow inbound traffic from app subnet to private endpoints subnet on port 443"
+

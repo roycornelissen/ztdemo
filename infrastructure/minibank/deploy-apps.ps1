@@ -25,17 +25,21 @@ az containerapp create `
   --ingress external `
   --target-port 8080 `
   --cpu 0.5 --memory 1Gi `
+  --min-replicas 1 `
+  --max-replicas 3 `
+  --registry-server "minibank.azurecr.io" `
+  --registry-identity $umiPaymentsApi `
   --user-assigned $umiPaymentsApi
 
 # Get the Key Vault secret URI
-$secretUri = "https://$keyvault.vault.azure.net/secrets/$paymentsClientSecretName"
-Write-Host "Payments Client Secret URI: $secretUri"
+$paymentsSecretUri = "https://$keyvault.vault.azure.net/secrets/$paymentsClientSecretName"
+$paymentsSecretSpec = "clientsecret=keyvaultref:`"$paymentsSecretUri`",identityref:$umiPaymentsApi"
 
 # Update the container app to add the secret as an environment variable
 az containerapp secret set `
     --name $paymentsApp `
     --resource-group $rg `
-    --secrets clientsecret=keyvaultref:$secretUri,identityref:$umiPaymentsApi
+    --secrets $paymentsSecretSpec
 
 # Set the environment variable in the container app to reference the secret
 az containerapp update `
@@ -52,15 +56,20 @@ az containerapp create `
   --ingress external `
   --target-port 8080 `
   --cpu 0.5 --memory 1Gi `
+  --min-replicas 1 `
+  --max-replicas 3 `
+  --registry-server "minibank.azurecr.io" `
+  --registry-identity $umiAccountsApi `
   --user-assigned $umiAccountsApi
 
-$secretUri = "https://$keyvault.vault.azure.net/secrets/$accountsClientSecretName"
+$accountsSecretUri = "https://$keyvault.vault.azure.net/secrets/$accountsClientSecretName"
+$accountsSecretSpec = "clientsecret=keyvaultref:`"$accountsSecretUri`",identityref:$umiAccountsApi"
 
 # Update the container app to add the secret as an environment variable
 az containerapp secret set `
     --name $accountsApp `
     --resource-group $rg `
-    --secrets clientsecret=keyvaultref:$secretUri,identityref:$umiAccountsApi
+    --secrets $accountsSecretSpec
 
 # Set the environment variable in the container app to reference the secret
 az containerapp update `
