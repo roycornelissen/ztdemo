@@ -14,7 +14,6 @@ var config = new ConfigurationBuilder()
 //read the Entra:ClientId from the configuration 
 var clientId = config["Entra:ClientId"];
 var tenantId = config["Entra:TenantId"];
-var clientSecret = config["Entra:ClientSecret"];
 
 var client = PublicClientApplicationBuilder
     .Create(clientId)
