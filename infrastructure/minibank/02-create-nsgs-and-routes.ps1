@@ -88,7 +88,7 @@ az network nsg rule create `
   --access Allow `
   --protocol Tcp `
   --destination-address-prefixes $subnetFirewallPrefix `
-  --destination-port-ranges * `
+  --destination-port-ranges '*' `
   --source-address-prefixes $subnetFirewallPrefix `
   --description "Allow outbound traffic from app subnet to firewall subnet on port 443"
 
