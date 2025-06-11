@@ -20,13 +20,13 @@ az keyvault create `
     --public-network-access Enabled `
     --sku standard
 
-    # Assign the current user as Key Vault Secrets Officer
-    $currentUser=$(az account show --query user.name -o tsv)
+  # Assign the current user as Key Vault Secrets Officer
+$currentUser=$(az account show --query user.name -o tsv)
 
-    az role assignment create `
-        --assignee $currentUser `
-        --role "Key Vault Secrets Officer" `
-        --scope $(az keyvault show --name $keyvault --resource-group $rg --query id -o tsv)
+az role assignment create `
+    --assignee $currentUser `
+    --role "Key Vault Secrets Officer" `
+    --scope $(az keyvault show --name $keyvault --resource-group $rg --query id -o tsv)
 
 # Step 2: Set the secrets
 az keyvault secret set `
