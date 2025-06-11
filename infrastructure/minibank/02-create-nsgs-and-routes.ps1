@@ -40,7 +40,6 @@ az network vnet subnet update `
   --resource-group $rg `
   --vnet-name $vnet `
   --name $subnetApps `
-  --delegations "Microsoft.App/environments" `
   --network-security-group nsg-containerapps
 
 $subnetAppsPrefix = az network vnet subnet show `

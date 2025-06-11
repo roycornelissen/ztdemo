@@ -30,7 +30,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' = {
       { 
         name: appGatewaySubnetName
         properties: {
-          addressPrefix: '10.0.2.0/24'
+          addressPrefix: '10.0.2.0/23'
           privateLinkServiceNetworkPolicies: 'Disabled'
         }
       }

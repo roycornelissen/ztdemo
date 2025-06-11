@@ -16,7 +16,7 @@ param tags object = {
 param envName string = 'env-${appSuffix}'
 
 @description('The name of the Virtual Network that will be deployed')
-param virtualNetworkName string = 'vnet-${appSuffix}'
+param virtualNetworkName string = 'vnet-payments'
 
 @description('The name of the Log Analytics workspace that will be deployed')
 param logAnalyticsName string = 'law-${appSuffix}'
