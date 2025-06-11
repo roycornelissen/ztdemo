@@ -23,19 +23,6 @@ az network nsg rule create `
   --destination-address-prefixes '*' `
   --description "Allow traffic from App Gateway on port 443"
 
-az network nsg rule create `
-  --resource-group $rg `
-  --nsg-name nsg-containerapps `
-  --name DenyAllInbound `
-  --priority 4096 `
-  --direction Inbound `
-  --access Deny `
-  --protocol '*' `
-  --source-address-prefixes '*' `
-  --destination-port-ranges '*' `
-  --destination-address-prefixes '*' `
-  --description "Deny all other inbound traffic"
-
 az network vnet subnet update `
   --resource-group $rg `
   --vnet-name $vnet `
@@ -91,20 +78,6 @@ az network nsg rule create `
   --source-address-prefixes $subnetFirewallPrefix `
   --description "Allow outbound traffic from app subnet to firewall subnet on port 443"
 
-# Deny all other outbound traffic from nsg-containerapps (optional, for strict lockdown)
-az network nsg rule create `
-  --resource-group $rg `
-  --nsg-name nsg-containerapps `
-  --name DenyAllOutbound `
-  --priority 120 `
-  --direction Outbound `
-  --access Deny `
-  --protocol '*' `
-  --source-address-prefixes '*' `
-  --destination-address-prefixes '*' `
-  --destination-port-ranges '*' `
-  --description "Deny all other outbound traffic"
-
 # Associate NSG to private endpoints subnet (if not already associated)
 az network vnet subnet update `
   --resource-group $rg `
@@ -125,18 +98,3 @@ az network nsg rule create `
   --destination-port-ranges 443 `
   --destination-address-prefixes $subnetPepPrefix `
   --description "Allow inbound traffic from app subnet to private endpoints subnet on port 443"
-
-# Deny all other inbound traffic to nsg-privateendpoints
-az network nsg rule create `
-  --resource-group $rg `
-  --nsg-name nsg-privateendpoints `
-  --name DenyAllOtherInbound `
-  --priority 110 `
-  --direction Inbound `
-  --access Deny `
-  --protocol '*' `
-  --source-address-prefixes $subnetAppsPrefix `
-  --destination-address-prefixes '*' `
-  --destination-port-ranges '*' `
-  --description "Deny all other inbound traffic from apps subnet"
-
