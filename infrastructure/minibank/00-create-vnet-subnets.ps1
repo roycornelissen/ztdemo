@@ -22,8 +22,8 @@ az network vnet subnet create `
   --name $subnetAppgw `
   --address-prefix 10.0.2.0/24 `
   --private-link-service-network-policies Disabled
-  
-# Azure firewall needs a /26 subnet for its IP configuration
+
+  # Azure firewall needs a /26 subnet for its IP configuration
 az network vnet subnet create `
   --resource-group $rg `
   --vnet-name $vnetName `

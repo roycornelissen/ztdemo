@@ -87,7 +87,7 @@ az network firewall policy rule-collection-group collection add-filter-collectio
   --rule-type ApplicationRule `
   --protocols Https=443 `
   --source-addresses $subnetAppsPrefix `
-  --target-fqdns $allowedUrl "minibank.azurecr.io" "login.microsoftonline.com" "login.windows.net" "sts.windows.net" `
+  --target-fqdns $allowedUrl "minibank.azurecr.io" "login.microsoftonline.com" "login.windows.net" "sts.windows.net" "mcr.microsoft.com" `
   --collection-priority 100
   
 $firewallPolicyId=$(az network firewall policy show `
