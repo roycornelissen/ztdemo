@@ -41,3 +41,7 @@ Write-Host "Create NSGs and routes"
 
 Write-Host "Deploy Firewall and configure allowed URLs"
 ./05-deploy-firewall.ps1 -rg $rg -location $location -subnetApps $subnetApps -subnetFirewall $subnetFirewall -vnet $vnet -allowedUrl $allowedUrl
+
+Write-Host "Deploy container apps"
+az deployment group create -g $rg --name minibank-apps --template-file ./ca-appgw/main.bicep
+
