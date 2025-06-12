@@ -118,6 +118,15 @@ module paymentapi 'host/container-app.bicep' = {
   }
 }
 
+module processing 'host/container-app.bicep' = {
+  name: 'processing'
+  params: {
+    containerAppEnvName: env.outputs.containerAppEnvName
+    containerAppName: 'ca-processing'
+    containerImage: 'minibank.azurecr.io/minibank/processing:x64'
+    location: location
+    tags: tags
+    identityName: 'id-processing'
     pullIdentityId: containeruser.id
     clientSecretName: 'payments-client-secret'
   }
