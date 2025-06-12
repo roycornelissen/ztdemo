@@ -59,6 +59,13 @@ az network route-table create `
 az network route-table route create `
   --resource-group $rg `
   --route-table-name rt-firewall `
+  --name internal-vnet-traffic `
+  --address-prefix 10.0.0.0/16 `
+  --next-hop-type VirtualNetworkGateway
+
+az network route-table route create `
+  --resource-group $rg `
+  --route-table-name rt-firewall `
   --name internet-via-fw `
   --address-prefix 0.0.0.0/0 `
   --next-hop-type VirtualAppliance `
