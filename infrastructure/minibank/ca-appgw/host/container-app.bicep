@@ -25,6 +25,9 @@ param identityName string
 @description('ID of the i')
 param pullIdentityId string
 
+@description('The revision suffix to apply to the Container App. This is used to create a new revision of the Container App when deploying updates.')
+param revisionSuffix string = 'initialrevision'
+
 @description('Number of CPU cores the container can use. Can be with a maximum of two decimals.')
 @allowed([
   '0.25'
@@ -112,7 +115,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       ]
     }
     template: {
-      revisionSuffix: 'hstsfix'
+      revisionSuffix: revisionSuffix
       containers: [
         {
           name: containerAppName

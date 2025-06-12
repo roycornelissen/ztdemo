@@ -27,6 +27,12 @@ param appGatewayName string = 'agw-${appSuffix}'
 @description('The name of the Public IP address that will be deployed')
 param ipAddressName string = 'pip-${appGatewayName}'
 
+@description('The tag of the images to deploy')
+param imageTag string = 'latest'
+
+@description('The revision suffix to apply to the Container Apps. This is used to create a new revision of the Container Apps when deploying updates.')
+param revisionSuffix string = uniqueString(resourceGroup().id)
+
 @description('This is the built-in Contributor role. See https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#contributor')
 resource networkContributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: subscription()
@@ -102,13 +108,14 @@ module accountapi 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-accountapi-${appSuffix}'
-    containerImage: 'minibank.azurecr.io/minibank/accounts:x64-20250612225'
+    containerImage: 'minibank.azurecr.io/minibank/accounts:${imageTag}'
     location: location
     tags: tags
     identityName: 'id-accounts-api'
     pullIdentityId: containeruser.id
     targetPort: 8080
     clientSecretName: 'accounts-client-secret'
+    revisionSuffix: revisionSuffix
   }
 }
 
@@ -117,13 +124,14 @@ module paymentapi 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-payments'
-    containerImage: 'minibank.azurecr.io/minibank/payments:x64-20250612225'
+    containerImage: 'minibank.azurecr.io/minibank/payments:${imageTag}'
     location: location
     tags: tags
     identityName: 'id-payments-api'
     pullIdentityId: containeruser.id
     targetPort: 8080
     clientSecretName: 'payments-client-secret'
+    revisionSuffix: revisionSuffix
   }
 }
 
@@ -132,12 +140,13 @@ module processing 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-processing'
-    containerImage: 'minibank.azurecr.io/minibank/processing:x64-20250612225'
+    containerImage: 'minibank.azurecr.io/minibank/processing:${imageTag}'
     location: location
     tags: tags
     identityName: 'id-processing'
     pullIdentityId: containeruser.id
     clientSecretName: 'payments-client-secret'
+    revisionSuffix: revisionSuffix
   }
 }
 
