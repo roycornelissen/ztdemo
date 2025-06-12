@@ -95,7 +95,7 @@ app.MapPost("/payment",
                 ? Results.Accepted() 
                 : result.Error.ToApiResult();
         })
-    .RequireAuthorization("MakePaymentsPolicy");
+    .RequireAuthorization();
 
 app.Run();
 

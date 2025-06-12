@@ -153,7 +153,7 @@ module appGateway 'network/app-gateway.bicep' = {
   params: {
     appGatewayName: appGatewayName
     pool1_fqdn: paymentapi.outputs.fqdn
-    pool1_path: '/payments'
+    pool1_path: '/payment'
     pool2_fqdn: accountapi.outputs.fqdn
     pool2_path: '/accounts'
     ipAddressName: ipAddressName
