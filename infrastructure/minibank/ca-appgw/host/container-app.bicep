@@ -80,6 +80,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     type: 'UserAssigned'
     userAssignedIdentities: {
       '${identity.id}': {}
+      '${pullIdentityId}': {}
     }
   }
   properties: {
