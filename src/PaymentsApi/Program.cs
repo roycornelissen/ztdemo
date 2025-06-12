@@ -77,8 +77,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
 var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
 
 app.MapGet("/test-endpoint",

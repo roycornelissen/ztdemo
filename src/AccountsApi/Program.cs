@@ -59,8 +59,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
 var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
 
 app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accountsRepository) =>
