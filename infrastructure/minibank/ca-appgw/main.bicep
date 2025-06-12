@@ -153,7 +153,7 @@ module processing 'host/container-app.bicep' = {
 module privateDnsZone 'network/private-dns-zone.bicep' = {
   name: 'pdns'
   params: {
-    envDefaultDomain: env.outputs.domain
+    domain: env.outputs.domain
     envStaticIp: env.outputs.staticIp
     tags: tags
     vnetName: vnet.name

@@ -1,5 +1,5 @@
 param envStaticIp string
-param envDefaultDomain string
+param domain string
 param tags object
 param vnetName string
 
@@ -8,7 +8,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' existing = {
 }
 
 resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: envDefaultDomain
+  name: domain
   location: 'global'
   tags: tags
 }
