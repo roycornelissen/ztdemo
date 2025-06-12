@@ -63,7 +63,7 @@ resource appGatewaySubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01'
 }
 
 module registry 'acrpull/acr-rbac.bicep' = {
-  scope: resourceGroup('minibank-rg-dev')
+  scope: resourceGroup('rg-minibank-dev')
   name: 'acr'
   params: {
     containeruserPrincipalId: containeruser.properties.principalId
@@ -81,6 +81,9 @@ module law 'monitoring/log-analytics.bicep' = {
 
 module env 'host/container-app-env.bicep' = {
   name: 'env'
+  dependsOn: [
+    registry
+  ]
   params: {
     acaSubnetId: acaSubnet.id 
     envName: envName 
@@ -92,6 +95,9 @@ module env 'host/container-app-env.bicep' = {
 
 module accountapi 'host/container-app.bicep' = {
   name: 'accounts'
+  dependsOn: [
+    registry
+  ]
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-accountapi-${appSuffix}'
