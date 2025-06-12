@@ -13,7 +13,7 @@ param tags object = {
 }
 
 @description('The name of the container app env')
-param envName string = 'env-${appSuffix}'
+param envName string = 'env-${appSuffix}-1'
 
 @description('The name of the Virtual Network that will be deployed')
 param virtualNetworkName string = 'vnet-payments'
@@ -90,6 +90,7 @@ module env 'host/container-app-env.bicep' = {
     lawName: law.outputs.name
     location: location
     tags: tags
+    pullIdentityId: containeruser.id
   }
 }
 
@@ -101,11 +102,12 @@ module accountapi 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-accountapi-${appSuffix}'
-    containerImage: 'minibank.azurecr.io/minibank/accounts:x64'
+    containerImage: 'minibank.azurecr.io/minibank/accounts:x64-20250612225'
     location: location
     tags: tags
     identityName: 'id-accounts-api'
     pullIdentityId: containeruser.id
+    targetPort: 8080
     clientSecretName: 'accounts-client-secret'
   }
 }
@@ -115,11 +117,12 @@ module paymentapi 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-payments'
-    containerImage: 'minibank.azurecr.io/minibank/payments:x64'
+    containerImage: 'minibank.azurecr.io/minibank/payments:x64-20250612225'
     location: location
     tags: tags
     identityName: 'id-payments-api'
     pullIdentityId: containeruser.id
+    targetPort: 8080
     clientSecretName: 'payments-client-secret'
   }
 }
@@ -129,7 +132,7 @@ module processing 'host/container-app.bicep' = {
   params: {
     containerAppEnvName: env.outputs.containerAppEnvName
     containerAppName: 'ca-processing'
-    containerImage: 'minibank.azurecr.io/minibank/processing:x64'
+    containerImage: 'minibank.azurecr.io/minibank/processing:x64-20250612225'
     location: location
     tags: tags
     identityName: 'id-processing'

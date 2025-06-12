@@ -99,7 +99,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       secrets: [
         {
           name: 'clientsecret'
-          keyVaultUrl: '${kv.properties.vaultUri}/secrets/${clientSecretName}'
+          keyVaultUrl: '${kv.properties.vaultUri}secrets/${clientSecretName}'
           identity: identity.id
         }        
       ]
@@ -111,7 +111,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       ]
     }
     template: {
-      revisionSuffix: 'firstrevision'
+      revisionSuffix: 'hstsfix'
       containers: [
         {
           name: containerAppName

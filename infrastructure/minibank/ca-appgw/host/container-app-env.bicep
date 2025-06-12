@@ -3,15 +3,22 @@ param location string
 param lawName string
 param acaSubnetId string
 param tags object
+param pullIdentityId string
 
 resource law 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: lawName
 }
 
-resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource env 'Microsoft.App/managedEnvironments@2025-02-02-preview' = {
   name: envName
   location: location
   tags: tags
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${pullIdentityId}': {}
+    }
+  }
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -20,7 +27,7 @@ resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
         sharedKey: law.listKeys().primarySharedKey
       }
     }
-    zoneRedundant: true
+    zoneRedundant: false
     vnetConfiguration: {
       infrastructureSubnetId: acaSubnetId
       internal: true

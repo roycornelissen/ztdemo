@@ -16,6 +16,11 @@ az network vnet create `
   --subnet-name $subnetApps `
   --subnet-prefix 10.0.0.0/23
 
+az network vnet subnet update `
+  --resource-group $rg `
+  --name $subnetApps `
+  --delegations Microsoft.App/environments
+
 az network vnet subnet create `
   --resource-group $rg `
   --vnet-name $vnetName `
