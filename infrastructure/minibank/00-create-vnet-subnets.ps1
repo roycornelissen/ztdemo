@@ -36,4 +36,5 @@ az network vnet subnet create `
   --vnet-name $vnetName `
   --name $subnetPep `
   --address-prefix 10.0.4.0/24 `
-  --private-link-service-network-policies Disabled
+  --private-link-service-network-policies Disabled `
+  --private-endpoint-network-policies Disabled
