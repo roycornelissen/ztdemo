@@ -42,24 +42,10 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
-  name: 'minibank'
-  scope: resourceGroup('rg-minibank-dev')
-}
-
 resource containeruser 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
   name: 'id-containeruser-${appSuffix}'
   location: location
   tags: tags
-}
-
-resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, containeruser.id, 'AcrPull')
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-    principalId: containeruser.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
@@ -74,6 +60,14 @@ resource acaSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existi
 resource appGatewaySubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   parent: vnet
   name: 'snet-appgw'
+}
+
+module registry 'acrpull/acr-rbac.bicep' = {
+  scope: resourceGroup('minibank-rg-dev')
+  name: 'acr'
+  params: {
+    containeruserPrincipalId: containeruser.properties.principalId
+  }
 }
 
 module law 'monitoring/log-analytics.bicep' = {
@@ -104,7 +98,7 @@ module accountapi 'host/container-app.bicep' = {
     containerImage: 'minibank.azurecr.io/minibank/accounts:x64'
     location: location
     tags: tags
-    identityName: 'id-accounts'
+    identityName: 'id-accounts-api'
     pullIdentityId: containeruser.id
     clientSecretName: 'accounts-client-secret'
   }
@@ -118,7 +112,12 @@ module paymentapi 'host/container-app.bicep' = {
     containerImage: 'minibank.azurecr.io/minibank/payments:x64'
     location: location
     tags: tags
-    identityName: 'id-payments'
+    identityName: 'id-payments-api'
+    pullIdentityId: containeruser.id
+    clientSecretName: 'payments-client-secret'
+  }
+}
+
     pullIdentityId: containeruser.id
     clientSecretName: 'payments-client-secret'
   }
