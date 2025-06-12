@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$paymentsSecretValue,
-    [Parameter(Mandatory=$true)][string]$accountsSecretValue
+    [Parameter(Mandatory=$true)][string]$accountsSecretValue,
+    [Parameter(Mandatory=$true)][string]$imageTag
 )
 
 $rg = "rg-myapp"
@@ -43,5 +44,5 @@ Write-Host "Deploy Firewall and configure allowed URLs"
 ./05-deploy-firewall.ps1 -rg $rg -location $location -subnetApps $subnetApps -subnetFirewall $subnetFirewall -vnet $vnet -allowedUrl $allowedUrl
 
 Write-Host "Deploy container apps"
-az deployment group create -g $rg --name minibank-apps --template-file ./ca-appgw/main.bicep
+az deployment group create -g $rg --name minibank-apps --template-file ./ca-appgw/main.bicep --parameters imageTag=$imageTag
 
