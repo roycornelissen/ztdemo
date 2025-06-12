@@ -1,4 +1,5 @@
 @PaymentsApi_HostAddress = https://localhost:7296
+@auth_token = ""
 
 GET {{PaymentsApi_HostAddress}}/test-endpoint
 Accept: application/json
