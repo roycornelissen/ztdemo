@@ -27,7 +27,8 @@ az network vnet subnet update `
   --resource-group $rg `
   --vnet-name $vnet `
   --name $subnetApps `
-  --network-security-group nsg-containerapps
+  --network-security-group nsg-containerapps `
+  --service-endpoints Microsoft.KeyVault Microsoft.Storage Microsoft.ContainerRegistry
 
 $subnetAppsPrefix = az network vnet subnet show `
   --resource-group $rg `
