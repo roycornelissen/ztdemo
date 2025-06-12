@@ -5,6 +5,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Containers", "Containers", 
 		PaymentsApi.Dockerfile = PaymentsApi.Dockerfile
 		AccountsApi.Dockerfile = AccountsApi.Dockerfile
 		Processing.Dockerfile = Processing.Dockerfile
+		ScratchImageSample.Dockerfile = ScratchImageSample.Dockerfile
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Processing", "Processing\Processing.csproj", "{06CDBB7A-7A53-4997-AB5D-FF00D3F586B2}"
