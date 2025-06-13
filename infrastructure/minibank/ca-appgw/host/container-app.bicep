@@ -14,7 +14,7 @@ param containerAppName string
 param containerImage string
 
 @description('Specifies the container port.')
-param targetPort int = 80
+param targetPort int = 8080
 
 @description('The name of the kv secret that contains the client ID for the Azure AD application used to authenticate the Container App')
 param clientSecretName string

@@ -86,6 +86,42 @@ resource appGateway 'Microsoft.Network/applicationGateways@2024-07-01' = {
         }
       }
     ]
+    probes: [
+      {
+        name: 'pool1-health-probe'
+        properties: {
+          protocol: 'Https'
+          host: pool1_fqdn
+          path: '/healthz'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          match: {
+            statusCodes: [
+              '200-399'
+            ]
+          }
+          pickHostNameFromBackendHttpSettings: false
+        }
+      }
+      {
+        name: 'pool2-health-probe'
+        properties: {
+          protocol: 'Https'
+          host: pool2_fqdn
+          path: '/healthz'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+          match: {
+            statusCodes: [
+              '200-399'
+            ]
+          }
+          pickHostNameFromBackendHttpSettings: false
+        }
+      }
+    ]
     backendAddressPools: [
       { 
         name: 'root-pool'
@@ -120,14 +156,29 @@ resource appGateway 'Microsoft.Network/applicationGateways@2024-07-01' = {
     ]
     backendHttpSettingsCollection: [
       { 
-        name: 'my-agw-backend-setting'
+        name: 'pool1-backend-setting'
         properties: {
           protocol: 'Https'
           port: 443
           cookieBasedAffinity: 'Disabled'
           requestTimeout: 20
           pickHostNameFromBackendAddress: false
-          path: '/'
+          probe: {
+            id: resourceId('Microsoft.Network/applicationGateways/probes', appGatewayName, 'pool1-health-probe')
+          }
+        }
+      }
+      { 
+        name: 'pool2-backend-setting'
+        properties: {
+          protocol: 'Https'
+          port: 443
+          cookieBasedAffinity: 'Disabled'
+          requestTimeout: 20
+          pickHostNameFromBackendAddress: false
+          probe: {
+            id: resourceId('Microsoft.Network/applicationGateways/probes', appGatewayName, 'pool2-health-probe')
+          }
         }
       }
     ]
@@ -153,7 +204,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2024-07-01' = {
             id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, 'root-pool')
           }
           defaultBackendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'my-agw-backend-setting')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'pool1-backend-setting')
           }
           pathRules: [
             { 
@@ -164,7 +215,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2024-07-01' = {
                   id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, 'pool_1')
                 }
                 backendHttpSettings: {
-                  id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'my-agw-backend-setting')
+                  id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'pool1-backend-setting')
                 }
               }
             }
@@ -176,7 +227,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2024-07-01' = {
                   id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, 'pool_2')
                 }
                 backendHttpSettings: {
-                  id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'my-agw-backend-setting')
+                  id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, 'pool2-backend-setting')
                 }
               }
             }
