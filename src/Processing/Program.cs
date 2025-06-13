@@ -8,6 +8,10 @@ using Processing.Transactions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
@@ -17,8 +21,12 @@ builder.Services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 builder.Services.AddSingleton<TransactionRepository>();
 
 builder.Services.AddSingleton<IHandlePayments, PaymentHandler>();
-builder.Services.Decorate<IHandlePayments, HighAmountPolicy>();
-builder.Services.Decorate<IHandlePayments, OnlyEuroPolicy>();
+builder.Services.Decorate<IHandlePayments>((inner, _) =>
+    new HighAmountPolicy(inner)
+);
+builder.Services.Decorate<IHandlePayments>((inner, provider) =>
+    new OnlyEuroPolicy(inner, provider.GetRequiredService<IExchangeRateService>())
+);
 
 builder.Services.AddSingleton(provider =>
     QueueClientFactory.CreateQueueClient(
@@ -47,5 +55,7 @@ builder.Services.AddKeyedSingleton<TableClient>("accounts", (provider, _) =>
 builder.Services.AddHostedService<PaymentMessageProcessor>();
 
 var app = builder.Build();
+
+app.Services.GetRequiredService<IHandlePayments>();
 
 app.Run();

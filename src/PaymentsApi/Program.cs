@@ -51,8 +51,12 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IHandlePayments, PaymentHandler>();
-builder.Services.Decorate<IHandlePayments, PaymentValidator>();
-builder.Services.Decorate<IHandlePayments, AccountValidator>();
+builder.Services.Decorate<IHandlePayments>((inner, _) =>
+    new PaymentValidator(inner)
+);
+builder.Services.Decorate<IHandlePayments>((inner, provider) =>
+    new AccountValidator(inner, provider.GetRequiredService<IAccountsRepository>())
+);
 
 builder.Services.AddSingleton(provider =>
     QueueClientFactory.CreateQueueClient(
@@ -95,6 +99,7 @@ app.MapPost("/payment",
         })
     .RequireAuthorization();
 
+app.Services.GetService<IHandlePayments>();
 app.Run();
 
 internal static class ErrorResponseExtensions
