@@ -2,6 +2,7 @@
 FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-noble-chiseled AS base
 USER $APP_UID
 WORKDIR /app
+EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
