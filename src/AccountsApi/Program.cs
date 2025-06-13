@@ -37,6 +37,7 @@ builder.Services.AddAuthorization(options =>
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<AccountsRepository>();
 
@@ -79,6 +80,8 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
     .WithName("GetAccounts")
     .WithOpenApi()
     .RequireAuthorization();
+
+app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();
 

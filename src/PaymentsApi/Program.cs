@@ -19,6 +19,8 @@ builder.Configuration
 
 builder.WebHost.UseKestrelHttpsConfiguration();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
 
 builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
@@ -81,6 +83,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapHealthChecks("/healthz").AllowAnonymous();
+
 var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
 
 app.MapGet("/test-endpoint",
@@ -99,7 +103,6 @@ app.MapPost("/payment",
         })
     .RequireAuthorization();
 
-app.Services.GetService<IHandlePayments>();
 app.Run();
 
 internal static class ErrorResponseExtensions

@@ -75,7 +75,7 @@ resource env 'Microsoft.App/managedEnvironments@2023-11-02-preview' existing = {
   name: containerAppEnvName
 }
 
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2025-02-02-preview' = {
   name: containerAppName
   tags: tags
   location: location
@@ -124,10 +124,53 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             cpu: json(cpuCore)
             memory: '${memorySize}Gi'
           }
+          probes: [
+            {
+              type: 'Liveness'
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              failureThreshold: 3
+              successThreshold: 1
+              httpGet: {
+                path: '/healthz'
+                port: targetPort
+              }
+            }
+            {
+              type: 'Readiness'
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              failureThreshold: 3
+              successThreshold: 1
+              httpGet: {
+                path: '/healthz'
+                port: targetPort
+              }
+            }
+            {
+              type: 'Startup'
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              failureThreshold: 3
+              successThreshold: 1
+              httpGet: {
+                path: '/healthz'
+                port: targetPort
+              }
+            }
+          ]
           env: [
             {
               name: 'Entra__ClientSecret'
               secretRef: 'clientsecret'
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: identity.properties.clientId
+            }
+            {
+              name: 'AZURE_TENANT_ID'
+              value: identity.properties.tenantId
             }
             {
               name: 'AzureStorage__QueueEndpoint'
@@ -138,6 +181,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: 'https://stminibank.table.core.windows.net/'
             }
           ]
+
         }
       ]
       scale: {
