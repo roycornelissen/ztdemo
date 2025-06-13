@@ -31,7 +31,7 @@ param ipAddressName string = 'pip-${appGatewayName}'
 param imageTag string = 'latest'
 
 @description('The revision suffix to apply to the Container Apps. This is used to create a new revision of the Container Apps when deploying updates.')
-param revisionSuffix string = uniqueString(resourceGroup().id)
+param revisionSuffix string = uniqueString(resourceGroup().id, imageTag)
 
 @description('This is the built-in Contributor role. See https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#contributor')
 resource networkContributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
