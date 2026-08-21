@@ -19,6 +19,8 @@ builder.Configuration
 
 builder.WebHost.UseKestrelHttpsConfiguration();
 
+builder.AddServiceDefaults();
+
 builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
@@ -83,6 +85,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";

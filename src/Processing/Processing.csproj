@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
       <ProjectReference Include="..\Models\Models.csproj" />
+      <ProjectReference Include="..\MiniBank.ServiceDefaults\MiniBank.ServiceDefaults.csproj" />
     </ItemGroup>
 
 </Project>

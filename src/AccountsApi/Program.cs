@@ -17,6 +17,8 @@ builder.Configuration
 
 builder.WebHost.UseKestrelHttpsConfiguration();
 
+builder.AddServiceDefaults();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
@@ -81,6 +83,7 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
     .WithOpenApi()
     .RequireAuthorization();
 
+app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();

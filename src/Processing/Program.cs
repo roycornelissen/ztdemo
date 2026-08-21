@@ -12,6 +12,8 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
+builder.AddServiceDefaults();
+
 builder.Services.AddHealthChecks();
 
 builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
@@ -58,6 +60,7 @@ builder.Services.AddHostedService<PaymentMessageProcessor>();
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();
