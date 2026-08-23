@@ -1,0 +1,6 @@
+resource_group_name = "rg-minibank"
+location = "westeurope"
+app_suffix = "minibank"
+current_user_object_id = "00000000-0000-0000-0000-000000000000"
+payments_client_secret = "replace-me"
+accounts_client_secret = "replace-me"

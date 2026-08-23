@@ -1,0 +1,20 @@
+formatter: markdown table
+
+sections:
+  hide:
+    - providers
+    - requirements
+
+content: |
+  {{ .Header }}
+
+  ## AVM alignment
+
+  This module tree follows the repo's AVM guidance for Terraform layout, version pinning,
+  explicit types, and sensitive data handling. The root and child modules are intentionally
+  organized to support future migration to AVM-registry modules without violating the current
+  deployment workflow.
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
