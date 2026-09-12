@@ -1,7 +1,7 @@
 variable "resource_group_name" {
   description = "Name of the resource group that hosts the Minibank deployment."
   type        = string
-  default     = "rg-minibank"
+  default     = "rg-roy-ztdemo-minibank"
 }
 
 variable "location" {
@@ -61,11 +61,11 @@ variable "allowed_urls" {
 variable "acr_name" {
   description = "Name of the existing Azure Container Registry that hosts the Minibank images."
   type        = string
-  default     = "minibank"
+  default     = "royztdemo"
 }
 
 variable "acr_resource_group_name" {
   description = "Resource group that contains the existing Azure Container Registry."
   type        = string
-  default     = "rg-minibank-dev"
+  default     = "rg-roy-ztdemo-tf"
 }
