@@ -98,7 +98,6 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
         return Results.Ok(result);
     })
     .WithName("GetAccounts")
-    .WithOpenApi()
     .RequireAuthorization();
 
 app.MapDefaultEndpoints();
