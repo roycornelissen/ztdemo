@@ -31,20 +31,21 @@ module "monitoring" {
   tags                = var.tags
 }
 
-module "security" {
-  source = "../../modules/security"
+# Leave firewall behind for now to avoid high costs
+# module "security" {
+#   source = "../../modules/security"
 
-  allowed_urls             = var.allowed_urls
-  app_subnet_address_space = module.networking.subnet_address_prefixes["apps"]
-  app_subnet_id            = module.networking.subnet_ids["apps"]
-  app_suffix               = var.app_suffix
-  firewall_subnet_id       = module.networking.subnet_ids["firewall"]
-  location                 = var.location
-  pep_subnet_address_space = module.networking.subnet_address_prefixes["pep"]
-  pep_subnet_id            = module.networking.subnet_ids["pep"]
-  resource_group_name      = azurerm_resource_group.this.name
-  vnet_name                = module.networking.vnet_name
-}
+#   allowed_urls             = var.allowed_urls
+#   app_subnet_address_space = module.networking.subnet_address_prefixes["apps"]
+#   app_subnet_id            = module.networking.subnet_ids["apps"]
+#   app_suffix               = var.app_suffix
+#   firewall_subnet_id       = module.networking.subnet_ids["firewall"]
+#   location                 = var.location
+#   pep_subnet_address_space = module.networking.subnet_address_prefixes["pep"]
+#   pep_subnet_id            = module.networking.subnet_ids["pep"]
+#   resource_group_name      = azurerm_resource_group.this.name
+#   vnet_name                = module.networking.vnet_name
+# }
 
 module "storage" {
   source = "../../modules/storage"
@@ -113,14 +114,15 @@ module "container_platform" {
   tags                       = var.tags
 }
 
-module "appgateway" {
-  source = "../../modules/appgateway"
+# Leave app gateway behind for now to avoid high costs
+# module "appgateway" {
+#   source = "../../modules/appgateway"
 
-  accounts_fqdn         = module.container_platform.container_app_fqdns["accounts_api"]
-  app_gateway_subnet_id = module.networking.subnet_ids["appgw"]
-  app_suffix            = var.app_suffix
-  location              = var.location
-  payment_fqdn          = module.container_platform.container_app_fqdns["payments_api"]
-  resource_group_name   = azurerm_resource_group.this.name
-  tags                  = var.tags
-}
+#   accounts_fqdn         = module.container_platform.container_app_fqdns["accounts_api"]
+#   app_gateway_subnet_id = module.networking.subnet_ids["appgw"]
+#   app_suffix            = var.app_suffix
+#   location              = var.location
+#   payment_fqdn          = module.container_platform.container_app_fqdns["payments_api"]
+#   resource_group_name   = azurerm_resource_group.this.name
+#   tags                  = var.tags
+# }
