@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
+using TextCopy;
 
 Console.WriteLine("MiniBank Client");
 
@@ -72,8 +73,24 @@ if (apiResult != null)
 {
     Console.WriteLine($"Your API Access Token with scopes { string.Join(", ", requestedScopes) }:");
     Console.WriteLine(apiResult.AccessToken);
+    await CopyToClipboardAsync(apiResult.AccessToken);
 }
 else
 {
     Console.WriteLine("Failed to acquire access token.");
+}
+
+// Copies text to the OS clipboard cross-platform (Windows/macOS/Linux) via TextCopy, avoiding
+// manual copy/paste from a wrapped console line (a common source of Base64Url corruption for long JWTs).
+static async Task CopyToClipboardAsync(string text)
+{
+    try
+    {
+        await ClipboardService.SetTextAsync(text);
+        Console.WriteLine("(Token copied to clipboard.)");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"(Could not copy token to clipboard: {ex.Message})");
+    }
 }

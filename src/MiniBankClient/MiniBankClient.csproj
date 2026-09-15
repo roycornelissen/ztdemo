@@ -13,6 +13,7 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.12" />
       <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.12" />
       <PackageReference Include="Microsoft.Identity.Client" Version="4.89.0" />
+      <PackageReference Include="TextCopy" Version="6.2.1" />
     </ItemGroup>
 
     <ItemGroup>
