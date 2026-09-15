@@ -7,9 +7,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.Resource;
+using Microsoft.IdentityModel.Logging;
 using Models.Accounts;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+if (builder.Environment.IsDevelopment())
+{
+    IdentityModelEventSource.ShowPII = true;
+    IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+}
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -19,11 +26,22 @@ builder.WebHost.UseKestrelHttpsConfiguration();
 
 builder.AddServiceDefaults();
 
+var validAudiences = new[]
+{
+    builder.Configuration["Entra:Audience"],
+    builder.Configuration["Entra:ClientId"],
+    string.IsNullOrWhiteSpace(builder.Configuration["Entra:ClientId"])
+        ? null
+        : $"api://{builder.Configuration["Entra:ClientId"]}"
+}.Where(audience => !string.IsNullOrWhiteSpace(audience))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
     {
-        options.TokenValidationParameters.ValidAudience = builder.Configuration.GetValue<string>("Entra:Audience");
+        options.TokenValidationParameters.ValidAudiences = validAudiences;
     }, entra =>
     {
         builder.Configuration.Bind("Entra", entra);

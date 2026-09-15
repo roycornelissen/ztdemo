@@ -1,0 +1,6 @@
+app_suffix                   = "minibank"
+tenant_domain                = "roadtoalm.com"
+accounts_api_identifier_uri  = "api://minibank-accounts-api"
+payments_api_identifier_uri  = "api://minibank-payments-api"
+grant_admin_consent          = true
+# tenant_id = "00000000-0000-0000-0000-000000000000" # optional, defaults to the az login/CLI context
