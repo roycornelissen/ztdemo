@@ -4,6 +4,7 @@
     <ProjectReference Include="..\PaymentsApi\PaymentsApi.csproj" />
     <ProjectReference Include="..\AccountsApi\AccountsApi.csproj" />
     <ProjectReference Include="..\Processing\Processing.csproj" />
+    <ProjectReference Include="..\MiniBankClient\MiniBankClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

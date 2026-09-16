@@ -1,3 +1,5 @@
+#pragma warning disable ASPIRETERMINAL001
+
 using Azure.Data.Tables;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -60,5 +62,10 @@ builder.AddProject<Projects.Processing>("processing")
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
     .WithHttpHealthCheck("/healthz");
+
+builder.AddProject<Projects.MiniBankClient>("minibank-client")
+    .WaitFor(accountsApi)
+    .WaitFor(paymentsApi)
+    .WithTerminal();
 
 builder.Build().Run();

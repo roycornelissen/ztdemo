@@ -24,60 +24,63 @@ var client = PublicClientApplicationBuilder
 
 var scopes = new[] { "user.read" };
 
-var result = await client.AcquireTokenWithDeviceCode(scopes, deviceCodeResult =>
+await client.AcquireTokenWithDeviceCode(scopes, deviceCodeResult =>
 {
     Console.WriteLine(deviceCodeResult.Message);
     return Task.CompletedTask;
 }).ExecuteAsync();
 
-string[] requestedScopes = []; 
-
-AuthenticationResult apiResult;
 var accounts = await client.GetAccountsAsync();
 
-Console.WriteLine("Which API would you like to access?");
-Console.WriteLine("1. Payments API");
-Console.WriteLine("2. Accounts API");
-var choice = Console.ReadLine();
-if (choice == "1")
+while (true)
 {
-    Console.WriteLine("Accessing Payments API...");
-    requestedScopes = new[] { "api://minibank-payments-api/Payment.Create" };
-}
-else if (choice == "2")
-{
-    Console.WriteLine("Accessing Accounts API...");
-    requestedScopes = new[] { "api://minibank-accounts-api/Accounts.Read" };
-}
-else
-{
-    Console.WriteLine("Invalid choice. Exiting.");
-    return;
-}
+    Console.WriteLine();
+    Console.WriteLine("Which API would you like to access?");
+    Console.WriteLine("1. Payments API");
+    Console.WriteLine("2. Accounts API");
+    Console.WriteLine("q. Quit");
 
-try
-{
-    apiResult = await client.AcquireTokenSilent(requestedScopes, accounts.FirstOrDefault())
-        .ExecuteAsync();
-}
-catch (MsalUiRequiredException)
-{
-    apiResult = await client.AcquireTokenWithDeviceCode(requestedScopes, deviceCodeResult =>
+    var choice = Console.ReadLine()?.Trim();
+    if (choice is null || choice.Equals("q", StringComparison.OrdinalIgnoreCase))
     {
-        Console.WriteLine(deviceCodeResult.Message);
-        return Task.CompletedTask;
-    }).ExecuteAsync();
-}
+        Console.WriteLine("Goodbye.");
+        break;
+    }
 
-if (apiResult != null)
-{
-    Console.WriteLine($"Your API Access Token with scopes { string.Join(", ", requestedScopes) }:");
+    string[] requestedScopes;
+    switch (choice)
+    {
+        case "1":
+            Console.WriteLine("Accessing Payments API...");
+            requestedScopes = ["api://minibank-payments-api/Payment.Create"];
+            break;
+        case "2":
+            Console.WriteLine("Accessing Accounts API...");
+            requestedScopes = ["api://minibank-accounts-api/Accounts.Read"];
+            break;
+        default:
+            Console.WriteLine("Invalid choice. Please select 1, 2, or q.");
+            continue;
+    }
+
+    AuthenticationResult apiResult;
+    try
+    {
+        apiResult = await client.AcquireTokenSilent(requestedScopes, accounts.FirstOrDefault())
+            .ExecuteAsync();
+    }
+    catch (MsalUiRequiredException)
+    {
+        apiResult = await client.AcquireTokenWithDeviceCode(requestedScopes, deviceCodeResult =>
+        {
+            Console.WriteLine(deviceCodeResult.Message);
+            return Task.CompletedTask;
+        }).ExecuteAsync();
+    }
+
+    Console.WriteLine($"Your API Access Token with scopes {string.Join(", ", requestedScopes)}:");
     Console.WriteLine(apiResult.AccessToken);
     await CopyToClipboardAsync(apiResult.AccessToken);
-}
-else
-{
-    Console.WriteLine("Failed to acquire access token.");
 }
 
 // Copies text to the OS clipboard cross-platform (Windows/macOS/Linux) via TextCopy, avoiding
