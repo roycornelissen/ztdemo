@@ -1,6 +1,7 @@
 #pragma warning disable ASPIRETERMINAL001
 
 using Azure.Data.Tables;
+using Scalar.Aspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -67,5 +68,9 @@ builder.AddProject<Projects.MiniBankClient>("minibank-client")
     .WaitFor(accountsApi)
     .WaitFor(paymentsApi)
     .WithTerminal();
+
+builder.AddScalarApiReference()
+    .WithApiReference(paymentsApi)
+    .WithApiReference(accountsApi);
 
 builder.Build().Run();
