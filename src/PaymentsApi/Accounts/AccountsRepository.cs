@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using Models.Accounts;
 
@@ -9,15 +10,22 @@ public class AccountsRepository([FromKeyedServices("accounts")] TableClient tabl
         uint accountId,
         CancellationToken cancellationToken = default)
     {
-        var entity = await tableClient.GetEntityAsync<AccountEntity>("accounts", accountId.ToString(),
+        try
+        {
+        var entity = await tableClient.GetEntityIfExistsAsync<AccountEntity>("accounts", accountId.ToString(),
             cancellationToken: cancellationToken);
 
-        return entity is not null ?
+        return entity.HasValue ?
             new Account
             {
                 Id = accountId,
                 Description = entity.Value.Description,
                 UserId = entity.Value.UserId
             } : null;
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
     }
 }

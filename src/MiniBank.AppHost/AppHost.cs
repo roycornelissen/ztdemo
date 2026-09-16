@@ -1,11 +1,46 @@
+using Azure.Data.Tables;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Local emulator for Azure Storage (Queues + Tables) used by AccountsApi, PaymentsApi and Processing.
 var storage = builder.AddAzureStorage("storage")
     .RunAsEmulator(azurite => azurite.WithDataVolume());
 
-var paymentsQueue = storage.AddQueues("storage-queues");
+var storageQueues = storage.AddQueues("storage-queues");
+var paymentsQueue = storage.AddQueue("payments");
 var accountsTable = storage.AddTables("storage-tables");
+
+storage.OnResourceReady(async (_, _, cancellationToken) =>
+{
+    var connectionString = await accountsTable.Resource.ConnectionStringExpression
+        .GetValueAsync(cancellationToken);
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("The Azure Table Storage connection string is unavailable.");
+    }
+
+    var tableServiceClient = new TableServiceClient(connectionString);
+    var accounts = tableServiceClient.GetTableClient("accounts");
+
+    await accounts.CreateIfNotExistsAsync(cancellationToken);
+    await accounts.UpsertEntityAsync(
+        new TableEntity("accounts", "1")
+        {
+            ["Description"] = "Everyday account",
+            ["UserId"] = "test-user"
+        },
+        cancellationToken: cancellationToken);
+    await accounts.UpsertEntityAsync(
+        new TableEntity("accounts", "2")
+        {
+            ["Description"] = "Savings account",
+            ["UserId"] = "test-user"
+        },
+        cancellationToken: cancellationToken);
+
+    await tableServiceClient.CreateTableIfNotExistsAsync("transactions", cancellationToken);
+});
 
 var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
     .WithReference(accountsTable)
@@ -13,14 +48,14 @@ var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
     .WithHttpHealthCheck("/healthz");
 
 var paymentsApi = builder.AddProject<Projects.PaymentsApi>("paymentsapi")
-    .WithReference(paymentsQueue)
+    .WithReference(storageQueues)
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
     .WithHttpHealthCheck("/healthz");
 
 builder.AddProject<Projects.Processing>("processing")
-    .WithReference(paymentsQueue)
+    .WithReference(storageQueues)
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
