@@ -1,0 +1,36 @@
+name: Dependency vulnerability audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.csproj"
+      - "**/packages.lock.json"
+  pull_request:
+    paths:
+      - "**/*.csproj"
+      - "**/packages.lock.json"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore with locked mode
+        run: dotnet restore src/MiniBank.sln --locked-mode
+
+      - name: Audit NuGet packages for known vulnerabilities
+        run: dotnet list src/MiniBank.sln package --vulnerable --include-transitive 2>&1 | tee vulnerable-packages.log
+
+      - name: Fail if vulnerable packages are found
+        run: |
+          if grep -q "has the following vulnerable packages" vulnerable-packages.log; then
+            echo "::error::Vulnerable NuGet packages detected. See job log for details."
+            exit 1
+          fi
