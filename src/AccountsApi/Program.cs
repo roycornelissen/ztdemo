@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using AccountsApi.Accounts;
 using Azure.Core;
 using Azure.Identity;
@@ -10,6 +9,8 @@ using Microsoft.Identity.Web.Resource;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -139,9 +140,10 @@ if (app.Environment.IsDevelopment())
     // Swagger UI's OAuth2 middleware isn't a routed endpoint, so it runs behind the
     // fallback authorization policy below unless authentication/authorization are
     // pinned here, ahead of the endpoints that require them.
-    app.UseAuthentication();
-    app.UseAuthorization();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
 
@@ -161,6 +163,27 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
         return Results.Ok(result);
     })
     .WithName("GetAccounts")
+    .RequireAuthorization();
+
+app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsRepository accountsRepository, [Range(1, uint.MaxValue)] uint id) =>
+{
+    httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
+
+    var account = await accountsRepository.GetAccount(id, httpContext.RequestAborted);
+
+    if (account == null)
+    {
+        return Results.NotFound();
+    }
+
+    // output validation, in case we don't fully trust the data source
+    if (account.UserId != httpContext.User.Identity?.Name)
+    {
+        return Results.Forbid();
+    }
+    return Results.Ok(account);
+})
+    .WithName("GetAccount")
     .RequireAuthorization();
 
 app.MapDefaultEndpoints();
