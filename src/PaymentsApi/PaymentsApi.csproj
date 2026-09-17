@@ -7,7 +7,8 @@
         <UserSecretsId>aspnet-PaymentsApi-f618502b-ea33-46a1-a8ab-b24178d55704</UserSecretsId>
         <InvariantGlobalization>true</InvariantGlobalization>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
+		<!-- <ContainerFamily>noble-chiseled</ContainerFamily> -->
+	</PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" NoWarn="NU1605" />

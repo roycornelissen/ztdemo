@@ -7,7 +7,8 @@
         <UserSecretsId>aspnet-AccountsApi-d18d1e39-b232-497b-85e3-484204bc5518</UserSecretsId>
         <InvariantGlobalization>true</InvariantGlobalization>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
+		<ContainerFamily>noble-chiseled</ContainerFamily>
+	</PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" NoWarn="NU1605" />
