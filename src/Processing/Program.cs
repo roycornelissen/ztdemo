@@ -16,7 +16,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
 builder.Services.AddHttpClient();

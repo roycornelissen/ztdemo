@@ -1,5 +1,8 @@
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -123,5 +126,18 @@ public static class Extensions
         }
 
         return app;
+    }
+
+    public static TokenCredential CreateAzureCredential<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        if (!builder.Environment.IsProduction())
+        {
+            return new ChainedTokenCredential(
+                new AzureCliCredential(),
+                new VisualStudioCredential());
+        }
+
+        var clientId = builder.Configuration.GetValue<string>("AZURE_CLIENT_ID");
+        return new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
     }
 }

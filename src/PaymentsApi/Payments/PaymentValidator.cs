@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Models.Payments;
 using Models.ResultPattern;
@@ -9,15 +8,23 @@ public class PaymentValidator(IHandlePayments? inner) : IHandlePayments
 {
     public Task<ServiceResult<Payment>> Handle(Payment payment, ClaimsPrincipal user, CancellationToken cancellationToken = default)
     {
-        var context = new ValidationContext(payment);
-        var results = new List<ValidationResult>();
-
-        var isValid = Validator.TryValidateObject(payment, context, results, validateAllProperties: true);
-
-        if (!isValid)
+        if (string.IsNullOrWhiteSpace(payment.Currency))
         {
-            var message = string.Join(", ", results.Select(r => r.ErrorMessage).ToArray());
-            return Task.FromResult(ServiceResult<Payment>.Invalid(message));
+            return Task.FromResult(ServiceResult<Payment>.Invalid("The Currency field is required."));
+        }
+        if (payment.Currency.Length is < 3 or > 3)
+        {
+            return Task.FromResult(ServiceResult<Payment>.Invalid(
+                "The field Currency must be a string or array type with a minimum and maximum length of '3'."));
+        }
+        if (string.IsNullOrWhiteSpace(payment.Description))
+        {
+            return Task.FromResult(ServiceResult<Payment>.Invalid("The Description field is required."));
+        }
+        if (payment.Description.Length > 30)
+        {
+            return Task.FromResult(ServiceResult<Payment>.Invalid(
+                "The field Description must be a string or array type with a maximum length of '30'."));
         }
         if (payment.FromAccountId == payment.ToAccountId)
         {

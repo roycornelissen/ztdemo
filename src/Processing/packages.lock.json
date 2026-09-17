@@ -300,6 +300,7 @@
       "minibank.servicedefaults": {
         "type": "Project",
         "dependencies": {
+          "Azure.Core": "[1.62.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.10.0, )",
           "Microsoft.Extensions.ServiceDiscovery": "[10.10.0, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.18.0, )",

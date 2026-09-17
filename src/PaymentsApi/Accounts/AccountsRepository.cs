@@ -19,7 +19,7 @@ public class AccountsRepository([FromKeyedServices("accounts")] TableClient tabl
             new Account
             {
                 Id = accountId,
-                Description = entity.Value.Description,
+                Description = entity.Value!.Description,
                 UserId = entity.Value.UserId
             } : null;
         }

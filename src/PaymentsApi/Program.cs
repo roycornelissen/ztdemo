@@ -5,8 +5,6 @@ using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Payments;
@@ -14,7 +12,9 @@ using Models.ResultPattern;
 using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
 
-var builder = WebApplication.CreateSlimBuilder(args);
+//DEMO: Use WebApplication.CreateSlimBuilder(args) to create a minimal builder without the default services and middleware. This is useful for microservices that don't need MVC, Razor Pages, or other features. However, it also means you have to add any required services and middleware manually.
+var builder = WebApplication.CreateBuilder(args);
+//var builder = WebApplication.CreateSlimBuilder(args);
 
 if (builder.Environment.IsDevelopment())
 {
@@ -41,11 +41,20 @@ var validAudiences = new[]
     .Distinct(StringComparer.OrdinalIgnoreCase)
     .ToArray();
 
+var authority = builder.Configuration["Entra:Authority"]
+    ?? throw new InvalidOperationException("Entra:Authority must be configured.");
+var requiredScope = builder.Configuration["Entra:Scopes"]
+    ?? throw new InvalidOperationException("Entra:Scopes must be configured.");
+
 builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
 
+// DEMO: Replace DefaultAzureCredential with trimmed down credential chain for local development and production environments.
 builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+
+//builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
+
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -55,22 +64,31 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(options =>
+    .AddJwtBearer(options =>
     {
+        options.Authority = authority;
+        options.MapInboundClaims = false;
         options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.ValidAudiences = validAudiences;
-    }, entra =>
-    {
-        builder.Configuration.Bind("Entra", entra);
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    // options.FallbackPolicy = new AuthorizationPolicyBuilder()
-    //     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-    //     .RequireAuthenticatedUser()
-    //     .Build();
-});
+var authorization = builder.Services.AddAuthorizationBuilder();
+
+// DEMO: uncomment this to require authentication for every endpoint unless it
+// explicitly calls AllowAnonymous() or specifies a different authorization policy.
+ //authorization.SetFallbackPolicy(new AuthorizationPolicyBuilder()
+ //    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+ //    .RequireAuthenticatedUser()
+ //    .Build());
+
+authorization
+    .AddPolicy("Payment.Create", policy => policy
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .RequireAssertion(context => context.User.Claims
+            .Where(claim => claim.Type is "scp" or "scope")
+            .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .Contains(requiredScope, StringComparer.Ordinal)));
 
 builder.Services.AddOpenApi(options =>
 {
@@ -112,13 +130,13 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-builder.Services.AddScoped<IHandlePayments, PaymentHandler>();
-builder.Services.Decorate<IHandlePayments>((inner, _) =>
-    new PaymentValidator(inner)
-);
-builder.Services.Decorate<IHandlePayments>((inner, provider) =>
-    new AccountValidator(inner, provider.GetRequiredService<IAccountsRepository>())
-);
+builder.Services.AddScoped<PaymentHandler>();
+
+// DEMO: Wrap the PaymentHandler with an AccountValidator that checks if the accounts exist and belong to the user.
+builder.Services.AddScoped<IHandlePayments>(provider =>
+    new AccountValidator(
+        new PaymentValidator(provider.GetRequiredService<PaymentHandler>()),
+        provider.GetRequiredService<IAccountsRepository>()));
 
 builder.Services.AddSingleton(provider =>
     QueueClientFactory.CreateQueueClient(
@@ -164,8 +182,6 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
-var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
-
 app.MapGet("/test-endpoint",
     () => Results.Ok("Oops, this is an unauthenticated test endpoint!"));
 
@@ -173,14 +189,12 @@ app.MapPost("/payment",
         async ([FromBody] Payment payment, IHandlePayments handler, HttpContext context,
             CancellationToken cancellation) =>
         {
-            context.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-
             var result = await handler.Handle(payment, context.User, cancellation);
             return result.IsSuccess 
                 ? Results.Accepted() 
                 : result.Error.ToApiResult();
         })
-    .RequireAuthorization();
+    .RequireAuthorization("Payment.Create");
 
 app.Run();
 
