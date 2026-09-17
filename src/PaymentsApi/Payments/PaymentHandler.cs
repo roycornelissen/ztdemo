@@ -10,8 +10,8 @@ public class PaymentHandler(QueueClient queueClient) : IHandlePayments
 {
     public async Task<ServiceResult<Payment>> Handle(Payment payment, ClaimsPrincipal user, CancellationToken cancellationToken = default)
     {
-        var @event = new PaymentAcceptedEvent(user.Identity?.Name ?? "anonymous", payment);
-        var payload = JsonSerializer.Serialize(@event, AppJsonSerializerContext.Default.PaymentAcceptedEvent);
+        var evt = new PaymentAcceptedEvent(user.Identity?.Name ?? "anonymous", payment);
+        var payload = JsonSerializer.Serialize(evt, AppJsonSerializerContext.Default.PaymentAcceptedEvent);
         
         await queueClient.SendMessageAsync(payload, cancellationToken);
         
