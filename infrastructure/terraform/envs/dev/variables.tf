@@ -27,18 +27,6 @@ variable "tags" {
   }
 }
 
-variable "payments_client_secret" {
-  description = "Client secret used by the payments API."
-  type        = string
-  sensitive   = true
-}
-
-variable "accounts_client_secret" {
-  description = "Client secret used by the accounts API."
-  type        = string
-  sensitive   = true
-}
-
 variable "current_user_object_id" {
   description = "Object ID of the user deploying the stack; used for Key Vault access and ownership assignment."
   type        = string

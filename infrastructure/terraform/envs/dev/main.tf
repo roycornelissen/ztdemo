@@ -62,12 +62,10 @@ module "storage" {
 module "keyvault" {
   source = "../../modules/keyvault"
 
-  accounts_client_secret = var.accounts_client_secret
   app_suffix             = var.app_suffix
   current_user_object_id = var.current_user_object_id
   identity_principal_ids = module.identities.principal_ids
   location               = var.location
-  payments_client_secret = var.payments_client_secret
   pep_subnet_id          = module.networking.subnet_ids["pep"]
   resource_group_name    = azurerm_resource_group.this.name
   tags                   = var.tags

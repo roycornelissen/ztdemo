@@ -1,9 +1,3 @@
-variable "accounts_client_secret" {
-  description = "Shared secret used by the accounts identity."
-  type        = string
-  sensitive   = true
-}
-
 variable "app_suffix" {
   description = "Suffix applied to the Key Vault name."
   type        = string
@@ -23,12 +17,6 @@ variable "identity_principal_ids" {
 variable "location" {
   description = "Azure region for the Key Vault resources."
   type        = string
-}
-
-variable "payments_client_secret" {
-  description = "Shared secret used by the payments identity."
-  type        = string
-  sensitive   = true
 }
 
 variable "pep_subnet_id" {

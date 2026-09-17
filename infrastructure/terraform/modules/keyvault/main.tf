@@ -12,18 +12,6 @@ resource "azurerm_key_vault" "this" {
   tags                          = var.tags
 }
 
-resource "azurerm_key_vault_secret" "payments" {
-  name         = "payments-client-secret"
-  value        = var.payments_client_secret
-  key_vault_id = azurerm_key_vault.this.id
-}
-
-resource "azurerm_key_vault_secret" "accounts" {
-  name         = "accounts-client-secret"
-  value        = var.accounts_client_secret
-  key_vault_id = azurerm_key_vault.this.id
-}
-
 resource "azurerm_role_assignment" "current_user" {
   count = var.current_user_object_id == "" ? 0 : 1
 
