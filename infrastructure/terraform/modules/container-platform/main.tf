@@ -22,15 +22,19 @@ resource "azurerm_container_app" "this" {
     identity_ids = [each.value.identity_id]
   }
 
+  # Dapr is intentionally not configured: omitting the `dapr` block keeps the
+  # Dapr sidecar (and its additional attack surface / inter-app API) disabled.
+
   registry {
-    server   = "minibank.azurecr.io"
+    server   = var.registry_server
     identity = var.container_user_id
   }
 
   ingress {
-    external_enabled = true
-    target_port      = each.value.target_port
-    transport        = "auto"
+    external_enabled           = each.value.external_enabled
+    target_port                = each.value.target_port
+    transport                  = "auto"
+    allow_insecure_connections = false
 
     traffic_weight {
       percentage      = 100
@@ -45,7 +49,22 @@ resource "azurerm_container_app" "this" {
       cpu    = 0.25
       memory = "0.5Gi"
 
+      # Reduce runtime attack surface: disable in-process diagnostics/debugging endpoints
+      env {
+        name  = "DOTNET_EnableDiagnostics"
+        value = "0"
+      }
+      env {
+        name  = "DOTNET_EnableEventPipe"
+        value = "0"
+      }
+
       liveness_probe {
+        transport = "TCP"
+        port      = each.value.target_port
+      }
+
+      readiness_probe {
         transport = "TCP"
         port      = each.value.target_port
       }

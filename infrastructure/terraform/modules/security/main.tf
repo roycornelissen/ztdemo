@@ -106,7 +106,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
       name              = "allowed_url_external"
       description       = "Allow outbound access for required external endpoints"
       source_addresses  = [var.app_subnet_address_space]
-      destination_fqdns = concat(var.allowed_urls, ["open.er-api.com", "minibank.azurecr.io", "login.microsoftonline.com", "login.windows.net", "sts.windows.net", "mcr.microsoft.com"])
+      destination_fqdns = concat(var.allowed_urls, ["open.er-api.com", "royztdemo.azurecr.io", "login.microsoftonline.com", "login.windows.net", "sts.windows.net", "mcr.microsoft.com"])
 
       protocols {
         type = "Https"

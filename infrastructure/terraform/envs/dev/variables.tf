@@ -38,7 +38,7 @@ variable "allowed_urls" {
   type        = list(string)
   default = [
     "open.er-api.com",
-    "minibank.azurecr.io",
+    "royztdemo.azurecr.io",
     "login.microsoftonline.com",
     "login.windows.net",
     "sts.windows.net",

@@ -11,15 +11,21 @@ variable "app_subnet_id" {
 variable "container_apps" {
   description = "Map of Container Apps to create, keyed by logical name."
   type = map(object({
-    name        = string
-    image       = string
-    target_port = number
-    identity_id = string
+    name             = string
+    image            = string
+    target_port      = number
+    identity_id      = string
+    external_enabled = optional(bool, true)
   }))
 }
 
 variable "container_user_id" {
   description = "Resource ID used to configure ACR pull for the apps."
+  type        = string
+}
+
+variable "registry_server" {
+  description = "Login server (FQDN) of the ACR that hosts the container images."
   type        = string
 }
 

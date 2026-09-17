@@ -88,26 +88,28 @@ module "container_platform" {
   container_apps = {
     accounts_api = {
       name        = "ca-accountapi-${var.app_suffix}"
-      image       = "minibank.azurecr.io/minibank/accounts:latest"
+      image       = "${module.acr_rbac.login_server}/minibank/accounts:latest"
       target_port = 8080
       identity_id = module.identities.ids["accounts_api"]
     }
     payments_api = {
       name        = "ca-payments"
-      image       = "minibank.azurecr.io/minibank/payments:latest"
+      image       = "${module.acr_rbac.login_server}/minibank/payments:latest"
       target_port = 8080
       identity_id = module.identities.ids["payments_api"]
     }
     processing = {
-      name        = "ca-processing"
-      image       = "minibank.azurecr.io/minibank/processing:latest"
-      target_port = 8080
-      identity_id = module.identities.ids["processing"]
+      name             = "ca-processing"
+      image            = "${module.acr_rbac.login_server}/minibank/processing:latest"
+      target_port      = 8080
+      identity_id      = module.identities.ids["processing"]
+      external_enabled = false
     }
   }
   container_user_id          = module.identities.ids["container_user"]
   location                   = var.location
   log_analytics_workspace_id = module.monitoring.workspace_id
+  registry_server            = module.acr_rbac.login_server
   resource_group_name        = azurerm_resource_group.this.name
   tags                       = var.tags
 }
