@@ -73,9 +73,4 @@ builder.AddProject<Projects.Processing>("processing")
     .WaitFor(accountsTable)
     .WithHttpHealthCheck("/healthz");
 
-builder.AddProject<Projects.MiniBankClient>("minibank-client")
-    .WaitFor(accountsApi)
-    .WaitFor(paymentsApi)
-    .WithTerminal();
-
 builder.Build().Run();

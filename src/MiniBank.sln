@@ -1,9 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12210.168 stable
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Containers", "Containers", "{D678CAF0-F723-45A1-8957-B029109786A3}"
 	ProjectSection(SolutionItems) = preProject
-		PaymentsApi.Dockerfile = PaymentsApi.Dockerfile
 		AccountsApi.Dockerfile = AccountsApi.Dockerfile
+		PaymentsApi.Dockerfile = PaymentsApi.Dockerfile
 		Processing.Dockerfile = Processing.Dockerfile
 		ScratchImageSample.Dockerfile = ScratchImageSample.Dockerfile
 	EndProjectSection
@@ -13,8 +16,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{E1BC3C26-B3FA-4577-A4D1-53362C792574}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessingTests", "ProcessingTests\ProcessingTests.csproj", "{E2CF5D07-21A4-4B6B-B791-382414D92533}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniBankClient", "MiniBankClient\MiniBankClient.csproj", "{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentsApi", "PaymentsApi\PaymentsApi.csproj", "{2DF0BBA4-81CA-4A7E-96DA-9CF15016FD4C}"
 EndProject
@@ -74,18 +75,6 @@ Global
 		{E2CF5D07-21A4-4B6B-B791-382414D92533}.Release|x64.Build.0 = Release|Any CPU
 		{E2CF5D07-21A4-4B6B-B791-382414D92533}.Release|x86.ActiveCfg = Release|Any CPU
 		{E2CF5D07-21A4-4B6B-B791-382414D92533}.Release|x86.Build.0 = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|x64.Build.0 = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Debug|x86.Build.0 = Debug|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|Any CPU.Build.0 = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|x64.ActiveCfg = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|x64.Build.0 = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|x86.ActiveCfg = Release|Any CPU
-		{627C4C7C-B7CD-4E90-B0E0-3CB25DF47365}.Release|x86.Build.0 = Release|Any CPU
 		{2DF0BBA4-81CA-4A7E-96DA-9CF15016FD4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2DF0BBA4-81CA-4A7E-96DA-9CF15016FD4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2DF0BBA4-81CA-4A7E-96DA-9CF15016FD4C}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -161,5 +150,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EDED5646-5E8E-4836-AE98-F95A6ABA60B2}
 	EndGlobalSection
 EndGlobal
