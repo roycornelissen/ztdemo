@@ -9,6 +9,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<ContainerFamily>noble-chiseled</ContainerFamily>
 		<ContainerUser>app</ContainerUser>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 
     <ItemGroup>

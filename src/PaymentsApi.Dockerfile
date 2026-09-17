@@ -29,7 +29,8 @@ RUN dotnet publish -c $BUILD_CONFIGURATION -r linux-x64 \
     -o /app/publish \
     --self-contained true \
     /p:UseAppHost=true \
-    /p:PublishTrimmed=true && \
+    /p:PublishTrimmed=true \
+    /p:TrimMode=partial && \
     chmod +x /app/publish/PaymentsApi
 
 COPY ["PaymentsApi/appsettings.json", "/app/publish/"]
