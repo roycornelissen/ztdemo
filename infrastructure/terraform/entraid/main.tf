@@ -81,6 +81,10 @@ resource "azuread_application" "client" {
     redirect_uris = var.client_redirect_uris
   }
 
+  single_page_application {
+    redirect_uris = var.swagger_ui_redirect_uris
+  }
+
   required_resource_access {
     resource_app_id = data.azuread_service_principal.msgraph.client_id
 

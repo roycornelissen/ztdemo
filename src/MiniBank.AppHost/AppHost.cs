@@ -1,7 +1,6 @@
 #pragma warning disable ASPIRETERMINAL001
 
 using Azure.Data.Tables;
-using Scalar.Aspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -31,7 +30,7 @@ storage.OnResourceReady(async (_, _, cancellationToken) =>
         new TableEntity("accounts", "1")
         {
             ["Description"] = "Everyday account",
-            ["UserId"] = "test-user"
+            ["UserId"] = "roy_cornelissen@hotmail.com"
         },
         cancellationToken: cancellationToken);
     await accounts.UpsertEntityAsync(
@@ -48,14 +47,24 @@ storage.OnResourceReady(async (_, _, cancellationToken) =>
 var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
     .WithReference(accountsTable)
     .WaitFor(accountsTable)
-    .WithHttpHealthCheck("/healthz");
+    .WithHttpHealthCheck("/healthz")
+    .WithUrlForEndpoint("https", url =>
+    {
+        url.DisplayText = "Swagger";
+        url.Url = "/swagger";
+    });
 
 var paymentsApi = builder.AddProject<Projects.PaymentsApi>("paymentsapi")
     .WithReference(storageQueues)
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
-    .WithHttpHealthCheck("/healthz");
+    .WithHttpHealthCheck("/healthz")
+    .WithUrlForEndpoint("https", url =>
+    {
+        url.DisplayText = "Swagger";
+        url.Url = "/swagger";
+    });
 
 builder.AddProject<Projects.Processing>("processing")
     .WithReference(storageQueues)
@@ -68,9 +77,5 @@ builder.AddProject<Projects.MiniBankClient>("minibank-client")
     .WaitFor(accountsApi)
     .WaitFor(paymentsApi)
     .WithTerminal();
-
-builder.AddScalarApiReference()
-    .WithApiReference(paymentsApi)
-    .WithApiReference(accountsApi);
 
 builder.Build().Run();

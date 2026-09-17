@@ -19,12 +19,20 @@ terraform apply
 |---|---|---|
 | `minibank-accounts-api-<suffix>` | `src/AccountsApi` | Exposes the `Accounts.Read` delegated scope under `api://minibank-accounts-api`. |
 | `minibank-payments-api-<suffix>` | `src/PaymentsApi` | Exposes the `Payment.Create` delegated scope under `api://minibank-payments-api`. |
-| `minibank-client-<suffix>` | `src/MiniBankClient` | Public client (MSAL device-code flow) that requests `user.read` plus the two API scopes above. |
+| `minibank-client-<suffix>` | `src/MiniBankClient`, Swagger UI | Public client for the MSAL device-code flow and Swagger UI's browser-based authorization-code flow. |
 
 Admin consent for the client's delegated permissions is granted automatically
 (`var.grant_admin_consent`, default `true`) so the device-code flow doesn't
 prompt for consent on first run. Set it to `false` if the deploying principal
 isn't a Global/Privileged Role Administrator, and consent manually instead.
+
+Swagger UI redeems authorization codes from its browser UI at
+`/swagger/oauth2-redirect.html`. Terraform registers that path on each API's
+fixed https launch profile port (`https://localhost:7137/...` for
+AccountsApi, `https://localhost:7296/...` for PaymentsApi) on the
+application's **Single-page application** platform. Change
+`swagger_ui_redirect_uris` and the corresponding `launchSettings.json`
+`applicationUrl` together if those ports are unavailable.
 
 ## After applying
 
@@ -34,7 +42,10 @@ equivalent environment variables / user secrets) with the new tenant's IDs:
 - `tenant_id` -> `Entra:TenantId` in all three apps.
 - `accounts_api_client_id` -> `Entra:ClientId` in `src/AccountsApi`.
 - `payments_api_client_id` -> `Entra:ClientId` in `src/PaymentsApi`.
-- `client_client_id` -> `Entra:ClientId` in `src/MiniBankClient`.
+- `client_client_id` -> `Entra:ClientId` in `src/MiniBankClient`, and also
+  `SwaggerUi:ClientId` in `src/AccountsApi/appsettings.json` and
+  `src/PaymentsApi/appsettings.json` (Swagger UI reuses the same public SPA
+  app registration for its browser-based authorization-code + PKCE flow).
 
 The `Entra:Audience` / `Entra:Domain` values only need to change if you also
 change `accounts_api_identifier_uri` / `payments_api_identifier_uri` from

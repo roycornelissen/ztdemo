@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.Resource;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.OpenApi;
 using Models.Payments;
 using Models.ResultPattern;
 using PaymentsApi.Accounts;
@@ -56,6 +57,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
     {
+        options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     }, entra =>
     {
@@ -70,8 +72,45 @@ builder.Services.AddAuthorization(options =>
     //     .Build();
 });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    // Declares the Entra ID authorization-code (+ PKCE) flow so Swagger UI's "Authorize"
+    // dialog can drive an interactive login and attach the resulting access token to
+    // "Try it out" requests. See UseSwaggerUI below for the client-side (SPA) wiring.
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        const string scope = "api://minibank-payments-api/Payment.Create";
+        var tenantId = builder.Configuration["Entra:TenantId"]
+            ?? throw new InvalidOperationException("Entra:TenantId must be configured to generate the OpenAPI document.");
+
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["EntraID"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                AuthorizationCode = new OpenApiOAuthFlow
+                {
+                    AuthorizationUrl = new Uri($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize"),
+                    TokenUrl = new Uri($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token"),
+                    Scopes = new Dictionary<string, string>
+                    {
+                        [scope] = "Create payments"
+                    }
+                }
+            }
+        };
+
+        document.Security ??= [];
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("EntraID", document)] = [scope]
+        });
+
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddScoped<IHandlePayments, PaymentHandler>();
 builder.Services.Decorate<IHandlePayments>((inner, _) =>
@@ -102,6 +141,24 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Payments API v1");
+        options.RoutePrefix = "swagger";
+
+        // "minibank-client-minibank" is a public SPA app registration (PKCE, no secret)
+        // whose redirect URIs include this API's https://.../swagger/oauth2-redirect.html.
+        var swaggerUiClientId = app.Configuration["SwaggerUi:ClientId"];
+        if (!string.IsNullOrWhiteSpace(swaggerUiClientId))
+        {
+            options.OAuthClientId(swaggerUiClientId);
+            options.OAuthUsePkce();
+            options.OAuthScopeSeparator(" ");
+            // Pre-check the API's own delegated scope in the Authorize dialog so the
+            // requested access token includes it without the user manually ticking a box.
+            options.OAuthScopes($"{app.Configuration["Entra:Audience"]}/{app.Configuration["Entra:Scopes"]}");
+        }
+    });
 }
 
 app.MapDefaultEndpoints();

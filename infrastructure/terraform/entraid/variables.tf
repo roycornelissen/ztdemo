@@ -37,6 +37,15 @@ variable "client_redirect_uris" {
   ]
 }
 
+variable "swagger_ui_redirect_uris" {
+  description = "Redirect URIs registered on the SPA platform for Swagger UI's browser-based authorization-code (+ PKCE) flow, one per API's fixed https launch profile port."
+  type        = list(string)
+  default = [
+    "https://localhost:7137/swagger/oauth2-redirect.html", # AccountsApi
+    "https://localhost:7296/swagger/oauth2-redirect.html", # PaymentsApi
+  ]
+}
+
 variable "grant_admin_consent" {
   description = "Whether to pre-grant admin consent for the delegated permissions requested by MiniBankClient, so the device-code flow works without an interactive consent prompt. Requires the deploying principal to be a Global Administrator or Privileged Role Administrator."
   type        = bool
