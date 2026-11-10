@@ -19,7 +19,7 @@ resource "azurerm_container_app" "this" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [each.value.identity_id]
+    identity_ids = [each.value.identity_id, var.container_user_id]
   }
 
   # Dapr is intentionally not configured: omitting the `dapr` block keeps the
@@ -57,6 +57,14 @@ resource "azurerm_container_app" "this" {
       env {
         name  = "DOTNET_EnableEventPipe"
         value = "0"
+      }
+
+      dynamic "env" {
+        for_each = each.value.environment_variables
+        content {
+          name  = env.key
+          value = env.value
+        }
       }
 
       liveness_probe {

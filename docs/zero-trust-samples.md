@@ -107,6 +107,64 @@ bounded ingestion/sampling for floods, and classification/redaction across all
 framework logs and telemetry attributes too. Trace IDs are correlation, not
 trusted identity or authorization evidence.
 
+## 5. Separate local emulator trust from deployed workload trust
+
+The storage factories accept Aspire connection strings or the implicit Azurite
+fallback **only in Development**. Outside Development, a connection string is a
+configuration error, not a way to override identity authentication. Endpoints must
+be absolute HTTPS URIs without embedded credentials/SAS queries/fragments. Missing
+or malformed settings fail explicitly without including their contents in errors.
+Development still supports explicit HTTP emulator endpoints.
+
+All three workloads now use the focused credential helper. Only Development tries
+Azure CLI/Visual Studio credentials; Staging/Production/custom environment names
+require an explicit user-assigned managed identity client ID (`AZURE_CLIENT_ID`).
+Deployed clients do not create queues/tables, so provisioning permissions stay out
+of workload roles. Azurite auto-creation remains a Development convenience.
+
+Terraform now wires nonsecret client IDs and service endpoints into Container Apps,
+sets their ASP.NET Core environment to Production, and attaches the existing ACR
+pull identity as well as each workload identity. A client ID selects the workload
+identity; it is **not a secret**. Storage access is scoped as follows:
+
+| Workload | Resource | Role |
+|---|---|---|
+| AccountsApi | accounts table | Storage Table Data Reader |
+| PaymentsApi | accounts table | Storage Table Data Reader |
+| PaymentsApi | payments queue | Storage Queue Data Message Sender |
+| Processing | payments queue | Storage Queue Data Message Processor |
+| Processing | transactions table | Storage Table Data Contributor |
+
+This adds the missing PaymentsApi account-read grant and removes account-wide
+permissions; a compromised worker cannot use its table grant to edit account
+ownership. Processing's unused accounts client registration is removed. Built-in
+Contributor still grants more than append-only ledger access; a reviewed custom
+role is a further exercise. Existing broader inherited roles must also be removed
+for effective least privilege. Azure role propagation is not instantaneous.
+
+`StorageIdentityTests` covers non-Development connection-string rejection, HTTPS
+and configuration boundaries. To exercise the optional live emulator round-trip,
+set `MINIBANK_TEST_STORAGE_CONNECTION_STRING` to a **disposable local Azurite**
+account and run the test project. The test creates and removes randomly named
+test resources; do not point it at real storage.
+
+The storage module also has Terraform mock-provider tests (no Azure resources):
+
+```powershell
+terraform -chdir=infrastructure\terraform\modules\storage init -backend=false
+terraform -chdir=infrastructure\terraform\modules\storage test
+```
+
+**Deployment caveats:** no Azure deployment is performed by these examples.
+Inspect the Terraform plan before applying: narrower role scopes replace existing
+assignments. The scaffold's public storage endpoint remains enabled. Shared Key
+is also deliberately **not** disabled in this commit: the locked AzureRM 4.81
+`azurerm_storage_table` resource always uses Shared Key for ACL operations, even
+with `storage_use_azuread`. First plan a state-safe migration to ARM/AzAPI table
+provisioning (or verify a newer provider), then disable account keys and public
+access. Simply flipping those flags here would break the current provisioning
+workflow. No workload itself needs an account key.
+
 ## Research and further recommendations
 
 Primary references consulted:
@@ -118,6 +176,11 @@ Primary references consulted:
 - [System.Text.Json: Disallow unmapped members](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/missing-members)
 - [OWASP: Logging](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)
 - [IdentityModel logging and PII](https://learn.microsoft.com/dotnet/api/microsoft.identitymodel.logging.identitymodeleventsource.showpii)
+- [Azure: Managed identities best practices](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/managed-identity-best-practice-recommendations)
+- [Azure: Table data RBAC scopes](https://learn.microsoft.com/azure/storage/tables/assign-azure-role-data-access)
+- [Azure: Queue data RBAC scopes](https://learn.microsoft.com/azure/storage/queues/assign-azure-role-data-access)
+- [Azure: Prevent Shared Key authorization](https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent)
+- [Locked AzureRM 4.81 table provisioning limitation](https://github.com/hashicorp/terraform-provider-azurerm/blob/v4.81.0/website/docs/r/storage_table.html.markdown)
 
 Useful next demonstrations, intentionally not implied by the samples above:
 

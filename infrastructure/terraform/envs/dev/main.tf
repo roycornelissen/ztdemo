@@ -91,12 +91,23 @@ module "container_platform" {
       image       = "${module.acr_rbac.login_server}/minibank/accounts:latest"
       target_port = 8080
       identity_id = module.identities.ids["accounts_api"]
+      environment_variables = {
+        ASPNETCORE_ENVIRONMENT      = "Production"
+        AZURE_CLIENT_ID             = module.identities.client_ids["accounts_api"]
+        AzureStorage__TableEndpoint = module.storage.table_endpoint
+      }
     }
     payments_api = {
       name        = "ca-payments"
       image       = "${module.acr_rbac.login_server}/minibank/payments:latest"
       target_port = 8080
       identity_id = module.identities.ids["payments_api"]
+      environment_variables = {
+        ASPNETCORE_ENVIRONMENT      = "Production"
+        AZURE_CLIENT_ID             = module.identities.client_ids["payments_api"]
+        AzureStorage__TableEndpoint = module.storage.table_endpoint
+        AzureStorage__QueueEndpoint = module.storage.queue_endpoint
+      }
     }
     processing = {
       name             = "ca-processing"
@@ -104,6 +115,12 @@ module "container_platform" {
       target_port      = 8080
       identity_id      = module.identities.ids["processing"]
       external_enabled = false
+      environment_variables = {
+        ASPNETCORE_ENVIRONMENT      = "Production"
+        AZURE_CLIENT_ID             = module.identities.client_ids["processing"]
+        AzureStorage__TableEndpoint = module.storage.table_endpoint
+        AzureStorage__QueueEndpoint = module.storage.queue_endpoint
+      }
     }
   }
   container_user_id          = module.identities.ids["container_user"]

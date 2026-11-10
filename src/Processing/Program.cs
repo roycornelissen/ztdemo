@@ -48,14 +48,6 @@ builder.Services.AddKeyedSingleton<TableClient>("transactions", (provider, _) =>
         "transactions")
 );
 
-builder.Services.AddKeyedSingleton<TableClient>("accounts", (provider, _) =>
-    TableClientFactory.CreateTableClient(
-        provider.GetRequiredService<ITokenCredentialProvider>(),
-        builder.Environment,
-        builder.Configuration, 
-        "accounts")
-);
-
 builder.Services.AddHostedService<PaymentMessageProcessor>();
 
 var app = builder.Build();

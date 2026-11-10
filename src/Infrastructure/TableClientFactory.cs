@@ -8,27 +8,17 @@ public class TableClientFactory
 {
     public static TableClient CreateTableClient(ITokenCredentialProvider tokenCredentialProvider, IHostEnvironment environment, IConfiguration configuration, string tableName)
     {
-        // Aspire injects the emulator connection string via WithReference() on the AppHost's Azure Storage tables resource.
-        var aspireConnectionString = configuration.GetConnectionString("storage-tables");
-        if (!string.IsNullOrWhiteSpace(aspireConnectionString))
+        var connectionString = StorageClientConfiguration.GetDevelopmentConnectionString(
+            environment, configuration, "storage-tables", "AzureStorage:TableEndpoint");
+        if (connectionString is not null)
         {
-            var aspireTableClient = new TableClient(aspireConnectionString, tableName);
-            aspireTableClient.CreateIfNotExists();
-            return aspireTableClient;
+            var client = new TableClient(connectionString, tableName);
+            client.CreateIfNotExists();
+            return client;
         }
 
-        if (environment.IsDevelopment())
-        {
-            if (string.IsNullOrWhiteSpace(configuration.GetSection("AzureStorage")["TableEndpoint"]))
-            {
-                // Fall back to local storage emulator in development when running outside Aspire
-                var devTableClient = new TableClient("UseDevelopmentStorage=true", tableName);
-                devTableClient.CreateIfNotExists();
-                return devTableClient;
-            }
-        }
         return new TableClient(
-            new Uri(configuration.GetSection("AzureStorage")["TableEndpoint"]!),
+            StorageClientConfiguration.GetServiceEndpoint(environment, configuration, "AzureStorage:TableEndpoint"),
             tableName,
             tokenCredentialProvider.Instance);
     }

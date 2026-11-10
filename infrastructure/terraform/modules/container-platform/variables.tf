@@ -11,11 +11,12 @@ variable "app_subnet_id" {
 variable "container_apps" {
   description = "Map of Container Apps to create, keyed by logical name."
   type = map(object({
-    name             = string
-    image            = string
-    target_port      = number
-    identity_id      = string
-    external_enabled = optional(bool, true)
+    name                  = string
+    image                 = string
+    target_port           = number
+    identity_id           = string
+    external_enabled      = optional(bool, true)
+    environment_variables = optional(map(string), {})
   }))
 }
 
