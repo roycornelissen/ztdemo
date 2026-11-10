@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Models.Accounts;
 using Models.ResultPattern;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using PaymentsApi.Accounts;
 using Shouldly;
@@ -14,7 +15,7 @@ public class AccountValidatorTests
     {
         var repository = Substitute.For<IAccountsRepository>();
         
-        var validator = new AccountValidator(null, repository);
+        var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
         var payment = new Models.Payments.Payment
         {
             FromAccountId = 1,
@@ -41,7 +42,7 @@ public class AccountValidatorTests
                 UserId = "testuser"
             });
         
-        var validator = new AccountValidator(null, repository);
+        var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
         var payment = new Models.Payments.Payment
         {
             FromAccountId = 1,
@@ -68,7 +69,7 @@ public class AccountValidatorTests
                 UserId = "testuser"
             });
         
-        var validator = new AccountValidator(null, repository);
+        var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
         var payment = new Models.Payments.Payment
         {
             FromAccountId = 1,

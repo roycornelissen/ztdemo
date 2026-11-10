@@ -4,19 +4,12 @@ using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
-
-if (builder.Environment.IsDevelopment())
-{
-    IdentityModelEventSource.ShowPII = true;
-    IdentityModelEventSource.LogCompleteSecurityArtifact = true;
-}
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -137,6 +130,7 @@ if (app.Environment.IsDevelopment())
     // pinned here, ahead of the endpoints that require them.
 }
 
+app.UseSecurityEventLogging();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

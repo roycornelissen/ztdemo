@@ -4,7 +4,6 @@ using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Payments;
 using Models.ResultPattern;
@@ -14,12 +13,6 @@ using PaymentsApi.Payments;
 //DEMO: Use WebApplication.CreateSlimBuilder(args) to create a minimal builder without the default services and middleware. This is useful for microservices that don't need MVC, Razor Pages, or other features. However, it also means you have to add any required services and middleware manually.
 var builder = WebApplication.CreateBuilder(args);
 //var builder = WebApplication.CreateSlimBuilder(args);
-
-if (builder.Environment.IsDevelopment())
-{
-    IdentityModelEventSource.ShowPII = true;
-    IdentityModelEventSource.LogCompleteSecurityArtifact = true;
-}
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -121,7 +114,8 @@ builder.Services.AddScoped<IHandlePayments>(provider =>
     new PaymentValidator(
         new AccountValidator(
             provider.GetRequiredService<PaymentHandler>(),
-            provider.GetRequiredService<IAccountsRepository>())));
+            provider.GetRequiredService<IAccountsRepository>(),
+            provider.GetRequiredService<ILogger<AccountValidator>>())));
 
 builder.Services.AddSingleton(provider =>
     QueueClientFactory.CreateQueueClient(
@@ -167,6 +161,7 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();
 
+app.UseSecurityEventLogging();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

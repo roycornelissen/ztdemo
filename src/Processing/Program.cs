@@ -25,8 +25,8 @@ builder.Services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 builder.Services.AddSingleton<TransactionRepository>();
 
 builder.Services.AddSingleton<IHandlePayments, PaymentHandler>();
-builder.Services.Decorate<IHandlePayments>((inner, _) =>
-    new HighAmountPolicy(inner)
+builder.Services.Decorate<IHandlePayments>((inner, provider) =>
+    new HighAmountPolicy(inner, provider.GetRequiredService<ILogger<HighAmountPolicy>>())
 );
 builder.Services.Decorate<IHandlePayments>((inner, provider) =>
     new OnlyEuroPolicy(inner, provider.GetRequiredService<IExchangeRateService>())
