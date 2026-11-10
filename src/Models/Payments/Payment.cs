@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace Models.Payments;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public record Payment
 {
     public string Currency { get; init; } = "EUR";
