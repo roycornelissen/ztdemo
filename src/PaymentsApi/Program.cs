@@ -3,7 +3,6 @@ using Azure.Core;
 using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
@@ -72,23 +71,7 @@ builder.Services
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     });
 
-var authorization = builder.Services.AddAuthorizationBuilder();
-
-// DEMO: uncomment this to require authentication for every endpoint unless it
-// explicitly calls AllowAnonymous() or specifies a different authorization policy.
- //authorization.SetFallbackPolicy(new AuthorizationPolicyBuilder()
- //    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
- //    .RequireAuthenticatedUser()
- //    .Build());
-
-authorization
-    .AddPolicy("Payment.Create", policy => policy
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .RequireAssertion(context => context.User.Claims
-            .Where(claim => claim.Type is "scp" or "scope")
-            .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            .Contains(requiredScope, StringComparer.Ordinal)));
+builder.Services.AddDelegatedScopeAuthorization("Payment.Create", requiredScope);
 
 builder.Services.AddOpenApi(options =>
 {
@@ -182,8 +165,12 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Intentionally no endpoint policy: the fallback still requires the delegated scope.
 app.MapGet("/test-endpoint",
-    () => Results.Ok("Oops, this is an unauthenticated test endpoint!"));
+    () => Results.Ok("The fallback policy protects this endpoint."));
 
 app.MapPost("/payment",
         async ([FromBody] Payment payment, IHandlePayments handler, HttpContext context,
@@ -220,3 +207,5 @@ internal static class ErrorResponseExtensions
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
+
+public partial class Program;

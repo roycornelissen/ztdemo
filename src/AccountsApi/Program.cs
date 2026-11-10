@@ -3,9 +3,7 @@ using Azure.Core;
 using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
@@ -50,13 +48,9 @@ builder.Services
         builder.Configuration.Bind("Entra", entra);
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .Build();
-});
+var requiredScope = builder.Configuration["Entra:Scopes"]
+    ?? throw new InvalidOperationException("Entra:Scopes must be configured.");
+builder.Services.AddDelegatedScopeAuthorization("Accounts.Read", requiredScope);
 
 builder.Services.AddOpenApi(options =>
 {
@@ -145,12 +139,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-var scopeRequiredByApi = app.Configuration["Entra:Scopes"] ?? "";
-
 app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accountsRepository) =>
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-
         var accounts = accountsRepository.GetAccounts(httpContext.User.Identity?.Name ?? "anonymous", httpContext.RequestAborted);
 
         var result = await accounts.ToArrayAsync(httpContext.RequestAborted);
@@ -163,12 +153,10 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
         return Results.Ok(result);
     })
     .WithName("GetAccounts")
-    .RequireAuthorization();
+    .RequireAuthorization("Accounts.Read");
 
 app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsRepository accountsRepository, [Range(1, uint.MaxValue)] uint id) =>
 {
-    httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-
     var account = await accountsRepository.GetAccount(id, httpContext.RequestAborted);
 
     if (account == null)
@@ -184,7 +172,7 @@ app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsReposit
     return Results.Ok(account);
 })
     .WithName("GetAccount")
-    .RequireAuthorization();
+    .RequireAuthorization("Accounts.Read");
 
 app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
