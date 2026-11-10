@@ -25,6 +25,7 @@ builder.Configuration
 builder.WebHost.UseKestrelHttpsConfiguration();
 
 builder.AddServiceDefaults();
+builder.AddApiRequestBudgets();
 
 var validAudiences = new[]
 {
@@ -136,6 +137,7 @@ if (app.Environment.IsDevelopment())
     // pinned here, ahead of the endpoints that require them.
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -175,7 +177,7 @@ app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsReposit
     .RequireAuthorization("Accounts.Read");
 
 app.MapDefaultEndpoints();
-app.MapHealthChecks("/healthz").AllowAnonymous();
+app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();
 
 app.Run();
 

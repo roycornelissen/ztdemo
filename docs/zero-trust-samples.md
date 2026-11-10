@@ -61,6 +61,29 @@ effects. Try `amount: 0.001`, `fromAccountId: 0`, `currency: "../"`, or an addit
 This sample covers HTTP input, **not** worker authorization, queue provenance or
 post-conversion currency/amount validation; those remain separate trust boundaries.
 
+## 3. Bound work before trusting the caller
+
+Both APIs use `AddApiRequestBudgets`: 4,096-byte Kestrel request bodies, at most
+32 headers/16 KiB total, and a 10-second header timeout. A per-process global
+fixed-window limiter admits 60 requests/minute with **no queue** and returns
+429 Problem Details with `Retry-After` when exhausted. It runs before
+authentication, so anonymous traffic also consumes the budget instead of
+performing unbounded token validation. Anonymous health probes are explicitly
+excluded, preventing overload from manufacturing failed liveness probes.
+
+The limits are deliberately small for a live demo, apply to all API routes, and
+are fixed constants in `ApiRequestBudgetExtensions`. One global partition also
+avoids allocating a limiter per arbitrary forwarded IP, username or claim.
+Integration tests admit exactly 60 requests then reject the 61st; real Kestrel
+tests accept 4,096 bytes and reject 4,097 bytes, with and without Content-Length.
+TestServer alone would not prove the Kestrel body limit.
+
+This is not DDoS protection or a distributed quota. Fixed windows allow boundary
+bursts, each replica has its own budget, and one caller can exhaust the shared
+budget. Add measured edge/WAF protection and bounded per-principal quotas as a
+production exercise. Configure the same limits at the reverse proxy; do not trust
+arbitrary forwarded headers to identify callers.
+
 ## Research and further recommendations
 
 Primary references consulted:

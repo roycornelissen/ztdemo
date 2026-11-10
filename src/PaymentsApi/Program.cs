@@ -28,6 +28,7 @@ builder.Configuration
 builder.WebHost.UseKestrelHttpsConfiguration();
 
 builder.AddServiceDefaults();
+builder.AddApiRequestBudgets();
 
 var validAudiences = new[]
 {
@@ -164,8 +165,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
-app.MapHealthChecks("/healthz").AllowAnonymous();
+app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

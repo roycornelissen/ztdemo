@@ -11,7 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace PaymentsApiTests.Security;
 
-public sealed class PaymentsApiFactory : WebApplicationFactory<Program>
+public sealed class PaymentsApiFactory(Action<IServiceCollection>? configureServices = null)
+    : WebApplicationFactory<Program>
 {
     private const string Issuer = "https://issuer.example.test";
     private const string Audience = "minibank-test";
@@ -40,6 +41,7 @@ public sealed class PaymentsApiFactory : WebApplicationFactory<Program>
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            configureServices?.Invoke(services);
         });
     }
 
