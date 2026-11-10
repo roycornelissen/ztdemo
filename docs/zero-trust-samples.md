@@ -84,6 +84,29 @@ budget. Add measured edge/WAF protection and bounded per-principal quotas as a
 production exercise. Configure the same limits at the reverse proxy; do not trust
 arbitrary forwarded headers to identify callers.
 
+## 4. Detect abuse without copying secrets into telemetry
+
+The APIs no longer enable IdentityModel `ShowPII` or
+`LogCompleteSecurityArtifact`, even in Development. Developer logs often reach
+shared dashboards and should not become an alternative token/PII store.
+
+`UseSecurityEventLogging` emits structured event **1000 / RequestRejected** for
+401/403/429 outcomes, with status, **route template** and W3C trace ID. It does not
+copy raw URLs/query strings, request bodies, authorization headers or user claims.
+The middleware wraps both authorization and rate limiting so early rejections are
+visible. Event **1001 / PaymentOwnershipDenied** replaces the console-only ownership
+warning; **1002 / HighAmountPayment** replaces the worker's console log of the exact
+amount and username. Existing OpenTelemetry logging carries these events to the
+configured collector/Aspire dashboard.
+
+Demonstrate an incorrect scope or account owner and filter for the event IDs.
+Tests check trace correlation, query/token omission and the high-amount threshold.
+These are operational signals, **not an immutable financial audit trail** or a
+fraud decision. Production needs restricted telemetry access, retention, alerting,
+bounded ingestion/sampling for floods, and classification/redaction across all
+framework logs and telemetry attributes too. Trace IDs are correlation, not
+trusted identity or authorization evidence.
+
 ## Research and further recommendations
 
 Primary references consulted:
@@ -93,6 +116,8 @@ Primary references consulted:
 - [ASP.NET Core: Rate limiting](https://learn.microsoft.com/aspnet/core/performance/rate-limit?view=aspnetcore-10.0)
 - [OWASP: Input validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html)
 - [System.Text.Json: Disallow unmapped members](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/missing-members)
+- [OWASP: Logging](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)
+- [IdentityModel logging and PII](https://learn.microsoft.com/dotnet/api/microsoft.identitymodel.logging.identitymodeleventsource.showpii)
 
 Useful next demonstrations, intentionally not implied by the samples above:
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Models.Payments;
 using Models.ResultPattern;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
@@ -97,7 +98,7 @@ public class PaymentBoundaryTests
     {
         var repository = Substitute.For<IAccountsRepository>();
         var sender = Substitute.For<IHandlePayments>();
-        var validator = new PaymentValidator(new AccountValidator(sender, repository));
+        var validator = new PaymentValidator(new AccountValidator(sender, repository, NullLogger<AccountValidator>.Instance));
 
         var result = await validator.Handle(payment, new ClaimsPrincipal());
 

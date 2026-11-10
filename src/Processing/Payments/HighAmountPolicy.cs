@@ -2,15 +2,14 @@ using Models.Payments;
 
 namespace Processing.Payments;
 
-public class HighAmountPolicy(IHandlePayments? inner) : IHandlePayments
+public class HighAmountPolicy(IHandlePayments? inner, ILogger<HighAmountPolicy> logger) : IHandlePayments
 {
     public Task Handle(Payment payment, string userId, CancellationToken cancellationToken = default)
     {
         if (payment.Amount > 10_000)
         {
-            // TODO: emit an event or log the high deposit amount to OpenTelemetry
-            // For demonstration, we will just log to the console
-            Console.WriteLine($"High deposit amount detected: {payment.Amount} for user {userId}");
+            logger.LogWarning(new EventId(1002, "HighAmountPayment"),
+                "Payment exceeded the high-amount review threshold");
         }
 
         if (inner == null)

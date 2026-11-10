@@ -5,7 +5,10 @@ using PaymentsApi.Payments;
 
 namespace PaymentsApi.Accounts;
 
-public class AccountValidator(IHandlePayments? inner, IAccountsRepository accountsRepository) : IHandlePayments
+public class AccountValidator(
+    IHandlePayments? inner,
+    IAccountsRepository accountsRepository,
+    ILogger<AccountValidator> logger) : IHandlePayments
 {
     public async Task<ServiceResult<Payment>> Handle(Payment payment, ClaimsPrincipal user, CancellationToken cancellationToken = default)
     {
@@ -29,8 +32,8 @@ public class AccountValidator(IHandlePayments? inner, IAccountsRepository accoun
         
         if (!fromAccount.UserId.Equals(user.Identity?.Name, StringComparison.InvariantCultureIgnoreCase))
         {
-            // Flag as security issue
-            Console.WriteLine("Attempted payment from an account that does not belong to the user");
+            logger.LogWarning(new EventId(1001, "PaymentOwnershipDenied"),
+                "Payment rejected by account ownership policy");
             return ServiceResult<Payment>.Forbidden("You are not allowed to make payments from this account");
         }
         
