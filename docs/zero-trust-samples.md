@@ -5,6 +5,10 @@ These are teaching samples, not a claim of production readiness. Zero Trust mean
 an unsigned numeric type, or a private network is useful defense in depth, not a
 replacement for authorization.
 
+For additional, not-yet-implemented recommendations, see
+[Modern Zero Trust practices](zero-trust-modern-practices.md). For guidance beyond
+the API scope, see [Zero Trust for agentic AI](zero-trust-agentic-ai.md).
+
 ## Repository observations
 
 The existing solution uses .NET 10, chiseled/non-root container examples, JWT bearer
