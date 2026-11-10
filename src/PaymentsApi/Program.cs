@@ -115,11 +115,12 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddScoped<PaymentHandler>();
 
-// DEMO: Wrap the PaymentHandler with an AccountValidator that checks if the accounts exist and belong to the user.
+// Validate the contract before querying accounts or sending a queue message.
 builder.Services.AddScoped<IHandlePayments>(provider =>
-    new AccountValidator(
-        new PaymentValidator(provider.GetRequiredService<PaymentHandler>()),
-        provider.GetRequiredService<IAccountsRepository>()));
+    new PaymentValidator(
+        new AccountValidator(
+            provider.GetRequiredService<PaymentHandler>(),
+            provider.GetRequiredService<IAccountsRepository>())));
 
 builder.Services.AddSingleton(provider =>
     QueueClientFactory.CreateQueueClient(

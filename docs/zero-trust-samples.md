@@ -44,6 +44,23 @@ dotnet test src\PaymentsApiTests\PaymentsApiTests.csproj
 dotnet test src\ProcessingTests\ProcessingTests.csproj
 ```
 
+## 2. Treat a well-typed payment as untrusted input
+
+`uint` rejects negative JSON account IDs, but still admits zero and values the
+signed-32-bit ledger cannot represent. `PaymentValidator` now checks that full
+range, allows only EUR/USD/GBP, and accepts positive amounts up to 1,000,000 with
+at most two fractional digits. These are explicit **demo business limits**, not
+universal banking rules; the existing 13,000 high-amount example remains valid.
+Descriptions remain required and limited to 30 characters and now reject control
+characters. JSON fields outside the contract are rejected rather than ignored.
+
+The validation decorator is now outermost: rejected input cannot query accounts
+or publish a payment. Tests verify both boundaries and absence of those side
+effects. Try `amount: 0.001`, `fromAccountId: 0`, `currency: "../"`, or an additional
+`userId` field. Do not silently clamp or round an invalid transfer into a valid one.
+This sample covers HTTP input, **not** worker authorization, queue provenance or
+post-conversion currency/amount validation; those remain separate trust boundaries.
+
 ## Research and further recommendations
 
 Primary references consulted:
@@ -51,6 +68,8 @@ Primary references consulted:
 - [Microsoft: Develop using Zero Trust principles](https://learn.microsoft.com/security/zero-trust/develop/overview)
 - [ASP.NET Core: JWT bearer authentication](https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0)
 - [ASP.NET Core: Rate limiting](https://learn.microsoft.com/aspnet/core/performance/rate-limit?view=aspnetcore-10.0)
+- [OWASP: Input validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html)
+- [System.Text.Json: Disallow unmapped members](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/missing-members)
 
 Useful next demonstrations, intentionally not implied by the samples above:
 
