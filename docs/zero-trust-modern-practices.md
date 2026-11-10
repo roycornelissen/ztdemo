@@ -8,6 +8,27 @@ features**. They complement the
 Research context: November 10, 2026. Product support, licensing and release status
 can change; verify the linked primary documentation before presenting or deploying.
 
+## What .NET 11 changes for this demo
+
+.NET 11 was released on November 10, 2026. Its ASP.NET Core authentication and
+authorization updates are useful, but most are not new controls for this
+repository's current architecture:
+
+| .NET 11 capability | Relevance here |
+|---|---|
+| `IAuthorizationRequirementData` metadata is enforced consistently on MVC controllers/actions, SignalR hubs/methods, and Blazor authorization components. | The APIs use Minimal APIs, where this authorization model is already supported. It becomes directly useful if the sample adds those endpoint types; it does not replace the existing fallback policy, exact scope check, or account-level authorization. |
+| SignalR can refresh authentication on an established connection. | There are no SignalR hubs or long-lived client connections in this sample. If one is added, token refresh and authorization must be tested together; connection lifetime must not become an authorization lease. |
+| Blazor static server-side rendering relies on antiforgery middleware for form validation. | There is no browser-facing form app here. This matters if a cookie-authenticated BFF or Blazor UI is added, not for the current bearer-token APIs. |
+
+These are not substitutes for validating JWT issuer, audience, lifetime and
+delegated scopes. The documented .NET 11 updates do not make a valid access token
+proof that a payment is still authorized at execution time. For this API/worker
+design, the higher-value next steps are to bind ownership to stable Entra tenant
+and object IDs, recheck current ownership at the worker boundary, then design
+transaction-bound approval and durable idempotency/atomic ledger processing.
+The worker checks are defense in depth: a queue producer that can forge messages
+remains a trusted boundary until an independent approval record is introduced.
+
 ## What was already added
 
 The implementation details, demonstration instructions, limitations and references
@@ -173,6 +194,14 @@ References:
 [workload CAE](https://learn.microsoft.com/entra/identity/conditional-access/concept-continuous-access-evaluation-workload),
 [Token Protection](https://learn.microsoft.com/entra/identity/conditional-access/concept-token-protection)
 and [DPoP, RFC 9449](https://www.rfc-editor.org/rfc/rfc9449.html).
+
+## .NET 11 references
+
+- [.NET 11 release announcement](https://devblogs.microsoft.com/dotnet/announcing-dotnet-11/)
+- [What's new in ASP.NET Core 11](https://learn.microsoft.com/aspnet/core/release-notes/aspnetcore-11?view=aspnetcore-11.0)
+- [Custom authorization policies with `IAuthorizationRequirementData`](https://learn.microsoft.com/aspnet/core/security/authorization/custom-authorization-policies-with-iauthorizationrequirementdata?view=aspnetcore-11.0)
+- [SignalR authentication and authorization](https://learn.microsoft.com/aspnet/core/signalr/authn-and-authz?view=aspnetcore-11.0)
+- [ASP.NET Core antiforgery guidance](https://learn.microsoft.com/aspnet/core/security/anti-request-forgery?view=aspnetcore-11.0)
 
 ## Suggested teaching priority
 
