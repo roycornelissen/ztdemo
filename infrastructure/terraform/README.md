@@ -33,3 +33,14 @@ terraform plan
 
 The backend block is intentionally a template for the dedicated AzureRM remote state storage account.
 Update the backend fields before the first production apply.
+
+## Zero Trust storage sample
+
+Workload grants are scoped to individual tables/queues, not the storage account.
+The Container Apps module receives nonsecret workload identity client IDs and
+storage endpoints; applications use managed identities outside Development.
+See [the sample walkthrough](../../docs/zero-trust-samples.md#5-separate-local-emulator-trust-from-deployed-workload-trust)
+for the role matrix, mock-provider tests, migration impact, and the locked
+AzureRM provider's Shared Key provisioning limitation. Public storage access and
+account keys are not disabled by this sample; private endpoints do not imply
+that public access is blocked.

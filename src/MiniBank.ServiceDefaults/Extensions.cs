@@ -130,7 +130,7 @@ public static class Extensions
 
     public static TokenCredential CreateAzureCredential<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        if (!builder.Environment.IsProduction())
+        if (builder.Environment.IsDevelopment())
         {
             return new ChainedTokenCredential(
                 new AzureCliCredential(),
@@ -138,6 +138,10 @@ public static class Extensions
         }
 
         var clientId = builder.Configuration.GetValue<string>("AZURE_CLIENT_ID");
+        if (!Guid.TryParse(clientId, out _))
+        {
+            throw new InvalidOperationException("AZURE_CLIENT_ID must identify the user-assigned managed identity outside Development.");
+        }
         return new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
     }
 }

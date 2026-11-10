@@ -22,32 +22,38 @@ resource "azurerm_storage_table" "transactions" {
 }
 
 resource "azurerm_storage_queue" "payments" {
-  name                 = "payments"
-  storage_account_name = azurerm_storage_account.this.name
+  name               = "payments"
+  storage_account_id = azurerm_storage_account.this.id
 }
 
 resource "azurerm_role_assignment" "payments_sender" {
-  scope                = azurerm_storage_account.this.id
+  scope                = azurerm_storage_queue.payments.id
   role_definition_name = "Storage Queue Data Message Sender"
   principal_id         = var.identity_principal_ids["payments_api"]
 }
 
 resource "azurerm_role_assignment" "processing_queue" {
-  scope                = azurerm_storage_account.this.id
+  scope                = azurerm_storage_queue.payments.id
   role_definition_name = "Storage Queue Data Message Processor"
   principal_id         = var.identity_principal_ids["processing"]
 }
 
 resource "azurerm_role_assignment" "processing_table" {
-  scope                = azurerm_storage_account.this.id
+  scope                = azurerm_storage_table.transactions.resource_manager_id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = var.identity_principal_ids["processing"]
 }
 
 resource "azurerm_role_assignment" "accounts_reader" {
-  scope                = azurerm_storage_account.this.id
+  scope                = azurerm_storage_table.accounts.resource_manager_id
   role_definition_name = "Storage Table Data Reader"
   principal_id         = var.identity_principal_ids["accounts_api"]
+}
+
+resource "azurerm_role_assignment" "payments_accounts_reader" {
+  scope                = azurerm_storage_table.accounts.resource_manager_id
+  role_definition_name = "Storage Table Data Reader"
+  principal_id         = var.identity_principal_ids["payments_api"]
 }
 
 resource "azurerm_private_dns_zone" "table" {

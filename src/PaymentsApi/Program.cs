@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Azure.Core;
-using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -43,10 +42,7 @@ builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
 
-// DEMO: Replace DefaultAzureCredential with trimmed down credential chain for local development and production environments.
-builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
-
-//builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
+builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
 
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
