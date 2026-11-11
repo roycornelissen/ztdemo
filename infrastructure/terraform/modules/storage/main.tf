@@ -44,6 +44,12 @@ resource "azurerm_role_assignment" "processing_table" {
   principal_id         = var.identity_principal_ids["processing"]
 }
 
+resource "azurerm_role_assignment" "processing_accounts_reader" {
+  scope                = azurerm_storage_table.accounts.resource_manager_id
+  role_definition_name = "Storage Table Data Reader"
+  principal_id         = var.identity_principal_ids["processing"]
+}
+
 resource "azurerm_role_assignment" "accounts_reader" {
   scope                = azurerm_storage_table.accounts.resource_manager_id
   role_definition_name = "Storage Table Data Reader"

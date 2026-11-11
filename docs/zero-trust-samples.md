@@ -57,9 +57,10 @@ This is an intentional storage and queue schema change, not an automatic data
 migration. Existing table rows containing only `UserId` have no trusted tenant /
 object mapping and are denied; map each account to verified `OwnerTenantId` and
 `OwnerObjectId` values through a separately reviewed migration. Do not copy
-`preferred_username` into either field or infer an object ID from it. Drain or
-review existing queue messages before switching producers because the event now
-carries the stable owner instead of a username. The local Aspire seed requires
+`preferred_username` into either field or infer an object ID from it. Legacy
+queue messages without an owner are rejected and deleted; drain or review
+in-flight messages before switching producers to avoid dropping accepted work.
+The local Aspire seed requires
 `MiniBank:DemoOwnerTenantId` and `MiniBank:DemoOwnerObjectId` configuration with
 the exact Entra identity used to authenticate; use non-secret app-host user
 secrets or environment variables. These IDs are identifiers, not credentials.
@@ -87,8 +88,18 @@ The validation decorator is now outermost: rejected input cannot query accounts
 or publish a payment. Tests verify both boundaries and absence of those side
 effects. Try `amount: 0.001`, `fromAccountId: 0`, `currency: "../"`, or an additional
 `userId` field. Do not silently clamp or round an invalid transfer into a valid one.
-This sample covers HTTP input, **not** worker authorization, queue provenance or
-post-conversion currency/amount validation; those remain separate trust boundaries.
+The API and worker share `PaymentContractValidator`; the worker rechecks the original message before
+currency conversion and validates the converted payment again before ledger writes.
+
+At execution, the worker requires a well-formed owner and payment, confirms the
+source and destination accounts still exist, and checks that the current source
+owner still matches the event's tenant/object IDs. This uses a table-scoped
+read-only role. Rejected messages emit structured event **1003 /
+PaymentMessageRejected** and are deleted to avoid endless poison-message retries;
+transient storage/write exceptions are not converted into successful processing.
+The producer remains a trusted queue boundary: a sender with queue write access
+could forge the envelope. This does not provide transaction-bound approval,
+idempotency, or atomic ledger updates.
 
 ## 3. Bound work before trusting the caller
 
@@ -162,11 +173,13 @@ identity; it is **not a secret**. Storage access is scoped as follows:
 | PaymentsApi | accounts table | Storage Table Data Reader |
 | PaymentsApi | payments queue | Storage Queue Data Message Sender |
 | Processing | payments queue | Storage Queue Data Message Processor |
+| Processing | accounts table | Storage Table Data Reader |
 | Processing | transactions table | Storage Table Data Contributor |
 
-This adds the missing PaymentsApi account-read grant and removes account-wide
-permissions; a compromised worker cannot use its table grant to edit account
-ownership. Processing's unused accounts client registration is removed. Built-in
+This adds the missing PaymentsApi account-read grant and a read-only Processing
+grant for execution-time ownership checks; the worker cannot use its account-table
+grant to edit ownership. There are no account-wide permissions. Processing uses
+the least privilege needed for its account reads. Built-in
 Contributor still grants more than append-only ledger access; a reviewed custom
 role is a further exercise. Existing broader inherited roles must also be removed
 for effective least privilege. Azure role propagation is not instantaneous.
@@ -213,12 +226,9 @@ Primary references consulted:
 
 Useful next demonstrations, intentionally not implied by the samples above:
 
-- Migrate ownership from mutable `preferred_username` to a tenant/object identity
-  (`tid` + `oid`). This needs a deliberate data and emulator-seed migration; never
-  silently reinterpret existing username rows.
-- Revalidate queue envelopes and authorization at the worker trust boundary; add a
-  quarantine path for malformed messages and bound retries. A queue producer's
-  identity is not proof of the end user's authority.
+- Add a restricted quarantine workflow and bounded retry/dead-letter handling for
+  rejected messages. Current event 1003 omits payload data and invalid messages
+  are deleted after recording the rejection reason.
 - Add durable idempotency and an atomic ledger/outbox. Storage Queue delivery is
   at least once, while the current worker generates fresh transaction IDs and
   writes debit/credit rows individually; retries can duplicate or partially apply
