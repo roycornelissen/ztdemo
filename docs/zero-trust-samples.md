@@ -11,11 +11,18 @@ the API scope, see [Zero Trust for agentic AI](zero-trust-agentic-ai.md).
 
 ## Repository observations
 
-The existing solution uses .NET 10, chiseled/non-root container examples, JWT bearer
+The solution now targets .NET 11, with chiseled/non-root container examples, JWT bearer
 authentication, delegated Entra scopes, account ownership checks, a focused Azure
 credential helper, OpenTelemetry, dependency lock files
 and a dependency audit workflow. Terraform models workload identities, data-plane
 roles, private endpoints, TLS and an optional outbound firewall.
+
+The code targets the .NET 11.0.0 release and uses the .NET 11 ASP.NET Core
+authentication, hosting, and OpenAPI packages. .NET 11 is a Standard Term Support
+(STS) release; check the [.NET support policy](https://dotnet.microsoft.com/platform/support/policy/dotnet-core)
+and keep the SDK, container runtime, and servicing packages current. Upgrade and
+dependency lock files are part of the sample so the deployment images and local
+builds use the same major runtime.
 
 Some are intentionally incomplete demo switches: PaymentsApi had no fallback
 policy, used DefaultAzureCredential, and kept its container hardening commented
@@ -174,8 +181,8 @@ workflow. No workload itself needs an account key.
 Primary references consulted:
 
 - [Microsoft: Develop using Zero Trust principles](https://learn.microsoft.com/security/zero-trust/develop/overview)
-- [ASP.NET Core: JWT bearer authentication](https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0)
-- [ASP.NET Core: Rate limiting](https://learn.microsoft.com/aspnet/core/performance/rate-limit?view=aspnetcore-10.0)
+- [ASP.NET Core: JWT bearer authentication](https://learn.microsoft.com/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-11.0)
+- [ASP.NET Core: Rate limiting](https://learn.microsoft.com/aspnet/core/performance/rate-limit?view=aspnetcore-11.0)
 - [OWASP: Input validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html)
 - [System.Text.Json: Disallow unmapped members](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/missing-members)
 - [OWASP: Logging](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)
