@@ -16,6 +16,8 @@ public sealed class PaymentsApiFactory(Action<IServiceCollection>? configureServ
 {
     private const string Issuer = "https://issuer.example.test";
     private const string Audience = "minibank-test";
+    public static readonly Guid TenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    public static readonly Guid ObjectId = Guid.Parse("00000000-0000-0000-0000-000000000002");
     private static readonly SymmetricSecurityKey Key =
         new(Encoding.UTF8.GetBytes("test-only-signing-key-not-a-production-credential-1234567890"));
 

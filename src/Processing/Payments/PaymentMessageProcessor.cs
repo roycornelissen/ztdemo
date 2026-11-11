@@ -17,7 +17,7 @@ public class PaymentMessageProcessor(QueueClient queueClient, IHandlePayments ha
                 
                 if (e != null)
                 {
-                    await handler.Handle(e.Payment, e.UserId, stoppingToken);
+                    await handler.Handle(e.Payment, e.Owner, stoppingToken);
                     await queueClient.DeleteMessageAsync(message.Value.MessageId, message.Value.PopReceipt, stoppingToken);
                 }
             }

@@ -4,6 +4,7 @@ using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
+using Models.Accounts;
 using Models.Payments;
 using Models.ResultPattern;
 using PaymentsApi.Accounts;
@@ -198,6 +199,7 @@ internal static class ErrorResponseExtensions
 [JsonSerializable(typeof(Payment))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(PaymentAcceptedEvent))]
+[JsonSerializable(typeof(AccountOwner))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

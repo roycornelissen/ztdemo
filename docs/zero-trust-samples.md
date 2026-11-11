@@ -46,6 +46,24 @@ but the wrong scope, 403; with `Payment.Create`, 200. This changes the previous
 intentionally insecure endpoint to a secure-by-default example. Health probes are
 explicit anonymous exceptions; OpenAPI/Swagger remain Development-only.
 
+Account ownership uses the authenticated Entra `tid` and `oid` claims, not the
+mutable `preferred_username` display/login value. Both claims must occur exactly
+once and contain non-empty GUIDs; missing, malformed, or ambiguous identity fails
+closed before account access. The Accounts API filters on both owner fields and
+checks ownership again for individual reads. The Payments API carries the stable
+owner in its queue event; account responses do not serialize owner identifiers.
+
+This is an intentional storage and queue schema change, not an automatic data
+migration. Existing table rows containing only `UserId` have no trusted tenant /
+object mapping and are denied; map each account to verified `OwnerTenantId` and
+`OwnerObjectId` values through a separately reviewed migration. Do not copy
+`preferred_username` into either field or infer an object ID from it. Drain or
+review existing queue messages before switching producers because the event now
+carries the stable owner instead of a username. The local Aspire seed requires
+`MiniBank:DemoOwnerTenantId` and `MiniBank:DemoOwnerObjectId` configuration with
+the exact Entra identity used to authenticate; use non-secret app-host user
+secrets or environment variables. These IDs are identifiers, not credentials.
+
 The integration tests use locally signed JWTs and an offline issuer configuration
 inside the test host only, retaining the actual bearer signature, audience,
 lifetime and scope checks. No signing key or bypass is installed in the app.

@@ -1,8 +1,10 @@
 #pragma warning disable ASPIRETERMINAL001
 
 using Azure.Data.Tables;
+using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
+var (demoOwnerTenantId, demoOwnerObjectId) = GetDemoOwner(builder.Configuration);
 
 // Local emulator for Azure Storage (Queues + Tables) used by AccountsApi, PaymentsApi and Processing.
 var storage = builder.AddAzureStorage("storage")
@@ -30,14 +32,16 @@ storage.OnResourceReady(async (_, _, cancellationToken) =>
         new TableEntity("accounts", "1")
         {
             ["Description"] = "Everyday account",
-            ["UserId"] = "roy_cornelissen@hotmail.com"
+            ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
+            ["OwnerObjectId"] = demoOwnerObjectId.ToString("D")
         },
         cancellationToken: cancellationToken);
     await accounts.UpsertEntityAsync(
         new TableEntity("accounts", "2")
         {
             ["Description"] = "Savings account",
-            ["UserId"] = "test-user"
+            ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
+            ["OwnerObjectId"] = demoOwnerObjectId.ToString("D")
         },
         cancellationToken: cancellationToken);
 
@@ -74,3 +78,22 @@ builder.AddProject<Projects.Processing>("processing")
     .WithHttpHealthCheck("/healthz");
 
 builder.Build().Run();
+
+static (Guid TenantId, Guid ObjectId) GetDemoOwner(IConfiguration configuration)
+{
+    if (!Guid.TryParse(configuration["MiniBank:DemoOwnerTenantId"], out var tenantId) ||
+        tenantId == Guid.Empty)
+    {
+        throw new InvalidOperationException(
+            "MiniBank:DemoOwnerTenantId must be set to the demo user's Entra tenant ID.");
+    }
+
+    if (!Guid.TryParse(configuration["MiniBank:DemoOwnerObjectId"], out var objectId) ||
+        objectId == Guid.Empty)
+    {
+        throw new InvalidOperationException(
+            "MiniBank:DemoOwnerObjectId must be set to the demo user's Entra object ID.");
+    }
+
+    return (tenantId, objectId);
+}

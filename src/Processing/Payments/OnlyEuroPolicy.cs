@@ -1,3 +1,4 @@
+using Models.Accounts;
 using Models.Payments;
 using Processing.ExchangeRates;
 
@@ -5,7 +6,7 @@ namespace Processing.Payments;
 
 public class OnlyEuroPolicy(IHandlePayments? inner, IExchangeRateService exchangeRateService) : IHandlePayments
 {
-    public async Task Handle(Payment payment, string userId, CancellationToken cancellationToken = default)
+    public async Task Handle(Payment payment, AccountOwner owner, CancellationToken cancellationToken = default)
     {
         if (!payment.Currency.Equals("EUR", StringComparison.OrdinalIgnoreCase))
         {
@@ -20,6 +21,6 @@ public class OnlyEuroPolicy(IHandlePayments? inner, IExchangeRateService exchang
         {
             return;
         }
-        await inner.Handle(payment, userId, cancellationToken);
+        await inner.Handle(payment, owner, cancellationToken);
     }
 }

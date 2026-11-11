@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Models.Accounts;
 using Models.Payments;
 using Models.ResultPattern;
 using PaymentsApi.Payments;
@@ -12,6 +13,11 @@ public class AccountValidator(
 {
     public async Task<ServiceResult<Payment>> Handle(Payment payment, ClaimsPrincipal user, CancellationToken cancellationToken = default)
     {
+        if (!AccountOwner.TryFromClaimsPrincipal(user, out var owner))
+        {
+            return ServiceResult<Payment>.Forbidden("A valid tenant and object identity is required");
+        }
+
         var fromAccount = await accountsRepository.GetAccount(
             payment.FromAccountId, 
             cancellationToken);
@@ -30,7 +36,7 @@ public class AccountValidator(
             return ServiceResult<Payment>.Invalid("To account is invalid");
         }
         
-        if (!fromAccount.UserId.Equals(user.Identity?.Name, StringComparison.InvariantCultureIgnoreCase))
+        if (fromAccount.Owner != owner)
         {
             logger.LogWarning(new EventId(1001, "PaymentOwnershipDenied"),
                 "Payment rejected by account ownership policy");
