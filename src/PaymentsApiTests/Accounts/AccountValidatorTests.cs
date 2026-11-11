@@ -22,7 +22,7 @@ public class AccountValidatorTests
             ToAccountId = 2
         };
         
-        var result = await validator.Handle(payment, new ClaimsPrincipal(), CancellationToken.None);
+        var result = await validator.Handle(payment, CreatePrincipal(), CancellationToken.None);
         
         result.IsSuccess.ShouldBeFalse();
         result.Error!.ErrorType.ShouldBe(ErrorType.Invalid);
@@ -39,7 +39,7 @@ public class AccountValidatorTests
             {
                 Id = 1,
                 Description = "Test Account",
-                UserId = "testuser"
+                Owner = CreateOwner()
             });
         
         var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
@@ -49,7 +49,7 @@ public class AccountValidatorTests
             ToAccountId = 2
         };
         
-        var result = await validator.Handle(payment, new ClaimsPrincipal(), CancellationToken.None);
+        var result = await validator.Handle(payment, CreatePrincipal(), CancellationToken.None);
         
         result.IsSuccess.ShouldBeFalse();
         result.Error!.ErrorType.ShouldBe(ErrorType.Invalid);
@@ -66,7 +66,9 @@ public class AccountValidatorTests
             {
                 Id = (uint)info[0],
                 Description = "Test Account",
-                UserId = "testuser"
+                Owner = new AccountOwner(
+                    Guid.Parse("00000000-0000-0000-0000-000000000003"),
+                    Guid.Parse("00000000-0000-0000-0000-000000000004"))
             });
         
         var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
@@ -76,10 +78,40 @@ public class AccountValidatorTests
             ToAccountId = 2
         };
         
-        var result = await validator.Handle(payment, new ClaimsPrincipal(), CancellationToken.None);
+        var result = await validator.Handle(payment, CreatePrincipal(), CancellationToken.None);
         
         result.IsSuccess.ShouldBeFalse();
         result.Error!.ErrorType.ShouldBe(ErrorType.Forbidden);
         result.Error!.Message.ShouldBe("You are not allowed to make payments from this account");
     }
+
+    [Test]
+    public async Task Rejects_missing_identity_claims_before_account_lookup()
+    {
+        var repository = Substitute.For<IAccountsRepository>();
+        var validator = new AccountValidator(null, repository, NullLogger<AccountValidator>.Instance);
+        var payment = new Models.Payments.Payment
+        {
+            FromAccountId = 1,
+            ToAccountId = 2
+        };
+
+        var result = await validator.Handle(payment, new ClaimsPrincipal(), CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.ErrorType.ShouldBe(ErrorType.Forbidden);
+        await repository.DidNotReceiveWithAnyArgs().GetAccount(default, default);
+    }
+
+    private static AccountOwner CreateOwner() => new(
+        PaymentsApiTests.Security.PaymentsApiFactory.TenantId,
+        PaymentsApiTests.Security.PaymentsApiFactory.ObjectId);
+
+    private static ClaimsPrincipal CreatePrincipal() => new(
+        new ClaimsIdentity(
+        [
+            new Claim("tid", PaymentsApiTests.Security.PaymentsApiFactory.TenantId.ToString("D")),
+            new Claim("oid", PaymentsApiTests.Security.PaymentsApiFactory.ObjectId.ToString("D"))
+        ],
+        "test"));
 }

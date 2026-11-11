@@ -98,6 +98,10 @@ Move ownership from mutable `preferred_username` values to the appropriate stabl
 tenant/object identity (`tid` plus `oid`). This needs an explicit migration of
 stored ownership and emulator seed data; do not silently reinterpret old rows.
 An authenticated identity must still be mapped to an authorized business account.
+The current sample now requires both claims and carries the pair in payment queue
+events; see the migration and local seed configuration notes in
+[Zero Trust samples](zero-trust-samples.md). Worker-side revalidation remains a
+separate step.
 
 **Demo:** a correctly scoped user cannot debit another user's account, and a
 previously accepted request cannot execute after the relevant authorization or

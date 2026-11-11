@@ -20,7 +20,12 @@ public class AccountsRepository([FromKeyedServices("accounts")] TableClient tabl
             {
                 Id = accountId,
                 Description = entity.Value!.Description,
-                UserId = entity.Value.UserId
+                Owner = AccountOwner.TryParse(
+                    entity.Value.OwnerTenantId,
+                    entity.Value.OwnerObjectId,
+                    out var owner)
+                    ? owner
+                    : null
             } : null;
         }
         catch (RequestFailedException ex) when (ex.Status == 404)

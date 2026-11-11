@@ -1,10 +1,11 @@
+using Models.Accounts;
 using Models.Payments;
 
 namespace Processing.Payments;
 
 public class HighAmountPolicy(IHandlePayments? inner, ILogger<HighAmountPolicy> logger) : IHandlePayments
 {
-    public Task Handle(Payment payment, string userId, CancellationToken cancellationToken = default)
+    public Task Handle(Payment payment, AccountOwner owner, CancellationToken cancellationToken = default)
     {
         if (payment.Amount > 10_000)
         {
@@ -16,6 +17,6 @@ public class HighAmountPolicy(IHandlePayments? inner, ILogger<HighAmountPolicy> 
         {
             return Task.CompletedTask;
         }
-        return inner.Handle(payment, userId, cancellationToken);
+        return inner.Handle(payment, owner, cancellationToken);
     }
 }

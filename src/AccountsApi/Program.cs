@@ -137,12 +137,15 @@ app.UseAuthorization();
 
 app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accountsRepository) =>
     {
-        var accounts = accountsRepository.GetAccounts(httpContext.User.Identity?.Name ?? "anonymous", httpContext.RequestAborted);
+        if (!AccountOwner.TryFromClaimsPrincipal(httpContext.User, out var owner))
+        {
+            return Results.Forbid();
+        }
 
+        var accounts = accountsRepository.GetAccounts(owner, httpContext.RequestAborted);
         var result = await accounts.ToArrayAsync(httpContext.RequestAborted);
 
-        // output validation, in case we don't fully trust the data source
-        if (Array.Exists(result, a => a.UserId != httpContext.User.Identity?.Name))
+        if (Array.Exists(result, account => account.Owner != owner))
         {
             return Results.Forbid();
         }
@@ -153,6 +156,11 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
 
 app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsRepository accountsRepository, [Range(1, uint.MaxValue)] uint id) =>
 {
+    if (!AccountOwner.TryFromClaimsPrincipal(httpContext.User, out var owner))
+    {
+        return Results.Forbid();
+    }
+
     var account = await accountsRepository.GetAccount(id, httpContext.RequestAborted);
 
     if (account == null)
@@ -160,8 +168,7 @@ app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsReposit
         return Results.NotFound();
     }
 
-    // output validation, in case we don't fully trust the data source
-    if (account.UserId != httpContext.User.Identity?.Name)
+    if (account.Owner != owner)
     {
         return Results.Forbid();
     }

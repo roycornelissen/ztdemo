@@ -10,6 +10,7 @@ public class AccountEntity : ITableEntity
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
     
-    public string UserId { get; set; } = "";
+    public string OwnerTenantId { get; set; } = "";
+    public string OwnerObjectId { get; set; } = "";
     public string Description { get; set; } = "";
 }

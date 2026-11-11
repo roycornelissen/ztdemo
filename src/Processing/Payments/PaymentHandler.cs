@@ -1,3 +1,4 @@
+using Models.Accounts;
 using Models.Payments;
 using Processing.Transactions;
 
@@ -5,7 +6,7 @@ namespace Processing.Payments;
 
 public class PaymentHandler(TransactionRepository repository) : IHandlePayments
 {
-    public async Task Handle(Payment payment, string userId, CancellationToken cancellationToken = default)
+    public async Task Handle(Payment payment, AccountOwner owner, CancellationToken cancellationToken = default)
     {
         BankTransaction[] transactions =
         [
