@@ -77,4 +77,30 @@ public class OnlyEuroPolicyTests
         convertedDeposit!.Amount.ShouldBe(200);
         convertedDeposit!.Currency.ShouldBe("EUR");
     }
+
+    [Test]
+    public async Task Rejects_conversion_that_exceeds_payment_limits()
+    {
+        var innerHandler = Substitute.For<IHandlePayments>();
+        var exchangeRateService = Substitute.For<IExchangeRateService>();
+        exchangeRateService
+            .ConvertRate(Arg.Any<decimal>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(1_200_000m);
+
+        var policy = new OnlyEuroPolicy(innerHandler, exchangeRateService);
+        var payment = new Payment
+        {
+            Currency = "USD",
+            Description = "Test deposit",
+            Amount = 600_000,
+            FromAccountId = 1,
+            ToAccountId = 2
+        };
+
+        var exception = await Should.ThrowAsync<PaymentMessageRejectedException>(
+            () => policy.Handle(payment, Owner));
+
+        exception.Reason.ShouldBe(PaymentMessageRejectionReason.InvalidPayment);
+        await innerHandler.DidNotReceiveWithAnyArgs().Handle(default!, default!, default);
+    }
 }

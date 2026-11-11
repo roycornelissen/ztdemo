@@ -74,9 +74,12 @@ run "workload_data_roles_are_resource_scoped" {
     condition = (
       azurerm_role_assignment.processing_table.scope == azurerm_storage_table.transactions.resource_manager_id &&
       azurerm_role_assignment.processing_table.role_definition_name == "Storage Table Data Contributor" &&
-      azurerm_role_assignment.processing_table.principal_id == var.identity_principal_ids["processing"]
+      azurerm_role_assignment.processing_table.principal_id == var.identity_principal_ids["processing"] &&
+      azurerm_role_assignment.processing_accounts_reader.scope == azurerm_storage_table.accounts.resource_manager_id &&
+      azurerm_role_assignment.processing_accounts_reader.role_definition_name == "Storage Table Data Reader" &&
+      azurerm_role_assignment.processing_accounts_reader.principal_id == var.identity_principal_ids["processing"]
     )
-    error_message = "Processing must only write the transactions table, not account ownership data."
+    error_message = "Processing may write transactions but can only read current account ownership."
   }
 
   assert {

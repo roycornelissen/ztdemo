@@ -44,8 +44,8 @@ local commit:
 | `0fd1317` | Development-only emulator credentials, explicit deployed workload identities and resource-scoped storage roles |
 
 These samples do not establish production readiness. In particular, worker
-revalidation, durable idempotency, atomic ledger updates and fully private storage
-remain separate work.
+revalidation is now demonstrated, but durable idempotency, atomic ledger updates
+and fully private storage remain separate work.
 
 ## 1. Bind approval to the exact transaction
 
@@ -91,17 +91,20 @@ and [claims challenges](https://learn.microsoft.com/entra/identity-platform/clai
 A valid token with `Payment.Create` is necessary, but not sufficient. Continue
 checking account ownership and add checks for the current operation: account
 status, permitted beneficiary, transaction limits and any required approval.
-Revalidate at the worker boundary rather than treating a queued message as proof
-of the end user's authority.
+The worker now revalidates the queued payment and current source-account owner
+before execution rather than treating the message as proof of continuing
+authorization. A queue producer's ability to send a message still makes it a
+trusted boundary; the current check is defense in depth, not independent
+transaction approval.
 
 Move ownership from mutable `preferred_username` values to the appropriate stable
 tenant/object identity (`tid` plus `oid`). This needs an explicit migration of
 stored ownership and emulator seed data; do not silently reinterpret old rows.
 An authenticated identity must still be mapped to an authorized business account.
-The current sample now requires both claims and carries the pair in payment queue
-events; see the migration and local seed configuration notes in
-[Zero Trust samples](zero-trust-samples.md). Worker-side revalidation remains a
-separate step.
+The current sample now requires both claims, carries the pair in payment queue
+events, and rechecks the pair against current ownership at execution; see the
+migration, local seed, and least-privilege worker-role notes in
+[Zero Trust samples](zero-trust-samples.md).
 
 **Demo:** a correctly scoped user cannot debit another user's account, and a
 previously accepted request cannot execute after the relevant authorization or

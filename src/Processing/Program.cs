@@ -23,6 +23,8 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 builder.Services.AddSingleton<TransactionRepository>();
+builder.Services.AddSingleton<IAccountOwnershipReader, TableAccountOwnershipReader>();
+builder.Services.AddSingleton<PaymentMessageValidator>();
 
 builder.Services.AddSingleton<IHandlePayments, PaymentHandler>();
 builder.Services.Decorate<IHandlePayments>((inner, provider) =>
@@ -46,6 +48,14 @@ builder.Services.AddKeyedSingleton<TableClient>("transactions", (provider, _) =>
         builder.Environment,
         builder.Configuration, 
         "transactions")
+);
+
+builder.Services.AddKeyedSingleton<TableClient>("accounts", (provider, _) =>
+    TableClientFactory.CreateTableClient(
+        provider.GetRequiredService<ITokenCredentialProvider>(),
+        builder.Environment,
+        builder.Configuration,
+        "accounts")
 );
 
 builder.Services.AddHostedService<PaymentMessageProcessor>();

@@ -16,6 +16,11 @@ public class OnlyEuroPolicy(IHandlePayments? inner, IExchangeRateService exchang
                 Amount = await exchangeRateService.ConvertRate(payment.Amount, payment.Currency, "EUR", cancellationToken)
             };
         }
+
+        if (PaymentContractValidator.Validate(payment) is not null)
+        {
+            throw new PaymentMessageRejectedException(PaymentMessageRejectionReason.InvalidPayment);
+        }
         
         if (inner == null)
         {
