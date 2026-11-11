@@ -42,6 +42,10 @@ local commit:
 | `7067647` | Request size/header/time budgets and bounded per-process rate limiting |
 | `7868bf0` | Privacy-safe, correlated security events instead of explicit PII/token logging |
 | `0fd1317` | Development-only emulator credentials, explicit deployed workload identities and resource-scoped storage roles |
+| `880be01` | .NET 11 Zero Trust feature applicability research |
+| `313cec7` | .NET 11 targets, framework packages, lock files and container images |
+| `d32a95c` | Stable Entra tenant/object account ownership and queue identity |
+| `6d6ef8c` | Worker-side payment revalidation and table-scoped read access |
 
 These samples do not establish production readiness. In particular, worker
 revalidation is now demonstrated, but durable idempotency, atomic ledger updates
