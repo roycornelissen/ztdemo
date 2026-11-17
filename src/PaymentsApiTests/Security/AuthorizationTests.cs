@@ -3,8 +3,10 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Models.Accounts;
 using Models.Payments;
 using NSubstitute;
+using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +27,9 @@ public class AuthorizationTests(bool mapInboundClaims)
     public void SetUp()
     {
         var handler = Substitute.For<IHandlePayments>();
+        var accounts = Substitute.For<IAccountsRepository>();
+        accounts.GetAccount(2, Arg.Any<CancellationToken>())
+            .Returns(new Account { Id = 2 });
         handler.Handle(Arg.Any<Payment>(), Arg.Any<ClaimsPrincipal>(), Arg.Any<CancellationToken>())
             .Returns(info => info.Arg<Payment>());
         factory = new PaymentsApiFactory(services =>
@@ -32,6 +37,7 @@ public class AuthorizationTests(bool mapInboundClaims)
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme,
                 options => options.MapInboundClaims = mapInboundClaims);
             services.AddSingleton(handler);
+            services.AddSingleton(accounts);
         });
         client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {

@@ -30,7 +30,7 @@ public class AccountValidatorTests
     }
     
     [Test]
-    public async Task Rejects_non_existent_to_account()
+    public async Task Does_not_check_beneficiary_existence_in_policy_decorator()
     {
         var repository = Substitute.For<IAccountsRepository>();
         
@@ -51,9 +51,9 @@ public class AccountValidatorTests
         
         var result = await validator.Handle(payment, CreatePrincipal(), CancellationToken.None);
         
-        result.IsSuccess.ShouldBeFalse();
-        result.Error!.ErrorType.ShouldBe(ErrorType.Invalid);
-        result.Error!.Message.ShouldBe("To account is invalid");
+        result.IsSuccess.ShouldBeTrue();
+        await repository.Received(1).GetAccount(1, Arg.Any<CancellationToken>());
+        await repository.DidNotReceive().GetAccount(2, Arg.Any<CancellationToken>());
     }
 
     [Test]

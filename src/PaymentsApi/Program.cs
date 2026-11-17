@@ -4,6 +4,7 @@ using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
@@ -13,6 +14,7 @@ using Models.ResultPattern;
 using PaymentsApi;
 using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
+using PaymentsApi.Security;
 
 //DEMO: Use WebApplication.CreateSlimBuilder(args) to create a minimal builder without the default services and middleware. This is useful for microservices that don't need MVC, Razor Pages, or other features. However, it also means you have to add any required services and middleware manually.
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +53,8 @@ var writeOAuthScope = $"{builder.Configuration["Entra:Audience"]}/{writeScope}";
 const string submitPaymentPolicy = "SubmitPayment";
 
 builder.Services.AddHealthChecks();
+builder.Services.AddValidation();
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
 
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
 builder.Services.AddScoped<PaymentHistoryRepository>();
@@ -207,10 +211,12 @@ app.UseAuthorization();
 app.MapGet("/test-endpoint", TestEndpoint.Handle);
 
 app.MapGet("/accounts/{accountId}/payments", PaymentHistoryEndpoint.Handle)
-    .RequireAuthorization();
+    .RequireAuthorization()
+    .AddEndpointFilter<BindingFailureSecurityFilter>();
 
 app.MapPost("/payment", SubmitPaymentEndpoint.Handle)
-    .RequireAuthorization(submitPaymentPolicy);
+    .RequireAuthorization(submitPaymentPolicy)
+    .AddEndpointFilter<BindingFailureSecurityFilter>();
 
 app.Run();
 
@@ -231,6 +237,7 @@ internal static class ErrorResponseExtensions
 }
 
 [JsonSerializable(typeof(Payment))]
+[JsonSerializable(typeof(CreatePaymentRequest))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(PaymentAcceptedEvent))]
 [JsonSerializable(typeof(AccountOwner))]

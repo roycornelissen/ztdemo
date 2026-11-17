@@ -1,9 +1,13 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
+using Azure.Data.Tables;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
+using NSubstitute;
+using PaymentsApi.Payments;
 using Shouldly;
 
 namespace PaymentsApiTests.Security;
@@ -63,6 +67,77 @@ public class SecurityEventTests
         entry.Message.ShouldNotContain(token);
         IdentityModelEventSource.ShowPII.ShouldBeTrue();
         IdentityModelEventSource.LogCompleteSecurityArtifact.ShouldBeFalse();
+    }
+
+    [TestCase("Development")]
+    [TestCase("Production")]
+    public async Task Payment_history_binding_failures_emit_a_private_correlatable_security_event(string environment)
+    {
+        var logs = new RecordingLoggerProvider();
+        using var factory = new PaymentsApiFactory(services =>
+        {
+            services.AddLogging(builder => builder.AddProvider(logs));
+            services.AddKeyedSingleton("accounts", Substitute.For<TableClient>());
+            services.AddKeyedSingleton("transactions", Substitute.For<TableClient>());
+        }, environment);
+        using var client = factory.CreateClient();
+        var token = PaymentsApiFactory.CreateToken("Payment.Read");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/accounts/private-value/payments?private=private-query");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Headers.Add("traceparent", "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01");
+
+        using var response = await client.SendAsync(request);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var entry = logs.Entries.Single(entry => entry.EventId.Id == 1003 && entry.Category == "MiniBank.Security");
+        entry.Message.ShouldContain("400");
+        entry.Message.ShouldContain("/accounts/{accountId}/payments");
+        entry.Message.ShouldContain("0123456789abcdef0123456789abcdef");
+        entry.Message.ShouldNotContain("private-query");
+        entry.Message.ShouldNotContain("private-value");
+        entry.Message.ShouldNotContain(token);
+    }
+
+    [Test]
+    public async Task Successfully_bound_payment_history_does_not_emit_a_binding_failure_event()
+    {
+        var logs = new RecordingLoggerProvider();
+        using var factory = new PaymentsApiFactory(services =>
+        {
+            services.AddLogging(builder => builder.AddProvider(logs));
+            services.AddKeyedSingleton("accounts", Substitute.For<TableClient>());
+            services.AddKeyedSingleton("transactions", Substitute.For<TableClient>());
+        });
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken("Payment.Read"));
+
+        using var response = await client.GetAsync("/accounts/1/payments");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        logs.Entries.ShouldNotContain(entry => entry.EventId.Id == 1003 && entry.Category == "MiniBank.Security");
+    }
+
+    [Test]
+    public async Task Malformed_json_is_rejected_before_the_binding_filter()
+    {
+        var logs = new RecordingLoggerProvider();
+        var handler = Substitute.For<IHandlePayments>();
+        using var factory = new PaymentsApiFactory(services =>
+        {
+            services.AddLogging(builder => builder.AddProvider(logs));
+            services.AddSingleton(handler);
+        });
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken("Payment.Write"));
+
+        using var response = await client.PostAsync("/payment", new StringContent(
+            """{"amount":""", Encoding.UTF8, "application/json"));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        await handler.DidNotReceiveWithAnyArgs().Handle(default!, default!, default);
+        logs.Entries.ShouldNotContain(entry => entry.EventId.Id == 1003 && entry.Category == "MiniBank.Security");
     }
 
     internal sealed class RecordingLoggerProvider : ILoggerProvider

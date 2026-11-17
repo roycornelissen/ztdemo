@@ -4,8 +4,10 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Models.Accounts;
 using Models.Payments;
 using NSubstitute;
+using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
 using Shouldly;
 
@@ -43,9 +45,16 @@ public class RequestBudgetTests
         int size, bool chunked, HttpStatusCode expected)
     {
         var handler = Substitute.For<IHandlePayments>();
+        var accounts = Substitute.For<IAccountsRepository>();
+        accounts.GetAccount(2, Arg.Any<CancellationToken>())
+            .Returns(new Account { Id = 2 });
         handler.Handle(Arg.Any<Payment>(), Arg.Any<ClaimsPrincipal>(), Arg.Any<CancellationToken>())
             .Returns(info => info.Arg<Payment>());
-        using var factory = new PaymentsApiFactory(services => services.AddSingleton(handler));
+        using var factory = new PaymentsApiFactory(services =>
+        {
+            services.AddSingleton(handler);
+            services.AddSingleton(accounts);
+        });
         factory.UseKestrel(0);
         using var client = factory.CreateClient();
         var json = """{"fromAccountId":1,"toAccountId":2,"amount":100,"description":"Demo"}""";

@@ -27,15 +27,6 @@ public class AccountValidator(
             return ServiceResult<Payment>.Invalid("From account is invalid");
         }
 
-        var toAccount = await accountsRepository.GetAccount(
-            payment.ToAccountId, 
-            cancellationToken);
-
-        if (toAccount == null)
-        {
-            return ServiceResult<Payment>.Invalid("To account is invalid");
-        }
-        
         if (fromAccount.Owner != owner)
         {
             logger.LogWarning(new EventId(1001, "PaymentOwnershipDenied"),

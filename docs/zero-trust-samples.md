@@ -181,6 +181,22 @@ warning; **1002 / HighAmountPayment** replaces the worker's console log of the e
 amount and username. Existing OpenTelemetry logging carries these events to the
 configured collector/Aspire dashboard.
 
+The Payments API uses an endpoint filter on `/accounts/{accountId}/payments`
+and `/payment` to emit event **1003 / PaymentBindingFailure** when a parameter
+check sets a 400 response. For example, an authenticated request to
+`/accounts/not-a-number/payments` fails to bind `accountId`. The filter runs
+before the handler, records the status, route template and trace ID, and
+leaves the response unchanged; it does not log parameter values or tokens.
+`ThrowOnBadRequest` is disabled for the Payments API so binding errors reach
+filters in Development as well as other environments; this replaces the
+Development exception page for those errors throughout that API. The filter
+does not cover body-reading failures such as malformed JSON, failures before
+endpoint execution, other endpoints, or 400s returned later by the handler.
+Binding failures are useful signals, not proof of malicious activity, and
+framework logs need their own privacy review.
+Filters could already observe binding failures before .NET 11; .NET 11 fixes a
+case where pass-through filter factories could let the handler run on failure.
+
 Demonstrate an incorrect scope or account owner and filter for the event IDs.
 Tests check trace correlation, query/token omission and the high-amount threshold.
 These are operational signals, **not an immutable financial audit trail** or a
