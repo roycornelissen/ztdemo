@@ -29,7 +29,7 @@ variable "payments_api_identifier_uri" {
 }
 
 variable "client_redirect_uris" {
-  description = "Redirect URIs registered for the public client (MiniBankClient), used by MSAL's device code / interactive flows."
+  description = "Native-client redirect URIs retained for optional MSAL clients; Swagger UI uses swagger_ui_redirect_uris instead."
   type        = list(string)
   default = [
     "https://login.microsoftonline.com/common/oauth2/nativeclient",
@@ -47,7 +47,7 @@ variable "swagger_ui_redirect_uris" {
 }
 
 variable "grant_admin_consent" {
-  description = "Whether to pre-grant admin consent for the delegated permissions requested by MiniBankClient, so the device-code flow works without an interactive consent prompt. Requires the deploying principal to be a Global Administrator or Privileged Role Administrator."
+  description = "Whether to pre-grant admin consent for the public client's delegated permissions. Requires the deploying principal to be a Global Administrator or Privileged Role Administrator."
   type        = bool
   default     = true
 }

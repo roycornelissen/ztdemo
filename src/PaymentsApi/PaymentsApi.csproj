@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-PaymentsApi-f618502b-ea33-46a1-a8ab-b24178d55704</UserSecretsId>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
         <!-- DEMO: use noble-chiseled base for locked down image -->

@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-AccountsApi-d18d1e39-b232-497b-85e3-484204bc5518</UserSecretsId>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<ContainerFamily>noble-chiseled</ContainerFamily>
 		<ContainerUser>app</ContainerUser>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
@@ -18,10 +17,6 @@
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.3.1" />
         <PackageReference Include="Microsoft.Identity.Web" Version="4.18.0" />
-        <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="4.18.0" />
-        <PackageReference Include="Azure.Storage.Queues" Version="12.28.1" />
-        <PackageReference Include="Scrutor" Version="7.0.0" />
-        <PackageReference Include="System.Linq.Async" Version="7.0.1" />
     </ItemGroup>
 
     <ItemGroup>

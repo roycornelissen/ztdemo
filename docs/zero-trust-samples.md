@@ -17,6 +17,12 @@ credential helper, OpenTelemetry, dependency lock files
 and a dependency audit workflow. Terraform models workload identities, data-plane
 roles, private endpoints, TLS and an optional outbound firewall.
 
+Aspire orchestrates the local workloads and Azurite. Deployment images are built
+with .NET SDK container publishing rather than Dockerfiles; see the
+[container publishing commands](../README.md#container-images). The optional
+Dependency-Track demo has its own
+[named Compose file](../README.md#optional-dependency-track-demo).
+
 The code targets the .NET 11.0.0 release and uses the .NET 11 ASP.NET Core
 authentication, hosting, and OpenAPI packages. .NET 11 is a Standard Term Support
 (STS) release; check the [.NET support policy](https://dotnet.microsoft.com/platform/support/policy/dotnet-core)
@@ -24,12 +30,12 @@ and keep the SDK, container runtime, and servicing packages current. Upgrade and
 dependency lock files are part of the sample so the deployment images and local
 builds use the same major runtime.
 
-Some are intentionally incomplete demo switches: PaymentsApi had no fallback
-policy, used DefaultAzureCredential, and kept its container hardening commented
-out. Both APIs enabled IdentityModel PII/token logging in Development. Storage
-factories accepted connection strings outside Development. Private endpoints exist
-but storage public access is enabled, and the firewall module is not wired into the
-development environment. Do not equate the scaffold with a deployed security boundary.
+PaymentsApi's container hardening remains an intentionally commented demo switch.
+The authorization fallback, focused Azure credential selection, safe logging
+defaults and Development-only connection strings described below are implemented.
+Private endpoints exist but storage public access is enabled, and the firewall
+module is not wired into the development environment. Do not equate the scaffold
+with a deployed security boundary.
 
 ## 1. Deny by default, then grant an exact delegated permission
 

@@ -2,16 +2,6 @@
   "version": 1,
   "dependencies": {
     "net11.0": {
-      "Azure.Storage.Queues": {
-        "type": "Direct",
-        "requested": "[12.28.1, )",
-        "resolved": "12.28.1",
-        "contentHash": "n6WL9zIvfNBQgUbjYugJBhf0fttdIScK89mSNVvF1iKKHvZleN0Y7V+u4e3K38D64PwHTTwEtqVzn8/3nvHTEg==",
-        "dependencies": {
-          "Azure.Core": "1.60.0",
-          "Azure.Storage.Common": "12.29.0"
-        }
-      },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Direct",
         "requested": "[11.0.0, )",
@@ -54,38 +44,11 @@
           "System.IdentityModel.Tokens.Jwt": "8.23.0"
         }
       },
-      "Microsoft.Identity.Web.DownstreamApi": {
-        "type": "Direct",
-        "requested": "[4.18.0, )",
-        "resolved": "4.18.0",
-        "contentHash": "LN6fdEkwdOGUK1F7B9qW2KiEwQpWVizuhKLraqEwejRdFZB57WLMXswiGgjFe635sFQib4L0Qlst5tBIDs6YTw==",
-        "dependencies": {
-          "Microsoft.Identity.Web.TokenAcquisition": "4.18.0"
-        }
-      },
-      "Scrutor": {
-        "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "wHWaroody48jnlLoq/REwUltIFLxplXyHTP+sttrc8P7+jkiVqf38afDidJNv4qgD/6zz2NKOYg06xLZ1bG7wQ==",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyModel": "10.0.0"
-        }
-      },
       "Swashbuckle.AspNetCore.SwaggerUI": {
         "type": "Direct",
         "requested": "[10.3.1, )",
         "resolved": "10.3.1",
         "contentHash": "kXuMIVJBDD6qMwG78VUrKy4x5Ke98HU0Q023Sf2iSBO/x45c5BuByYPAExIs9UeVsjdGGgvLWU5jK8l6MO2Z0Q=="
-      },
-      "System.Linq.Async": {
-        "type": "Direct",
-        "requested": "[7.0.1, )",
-        "resolved": "7.0.1",
-        "contentHash": "gwQtBHVY/WgqWgAYSe4JspXR+f1FvMbVIW4ixsJpGV/Kj8Nun3zp1ajIdvCWfmac8ektJGVLiJ/OR8JU9nZnMg==",
-        "dependencies": {
-          "System.Interactive.Async": "7.0.1"
-        }
       },
       "Azure.Core": {
         "type": "Transitive",
@@ -140,6 +103,15 @@
           "System.IO.Hashing": "10.0.9"
         }
       },
+      "Azure.Storage.Queues": {
+        "type": "Transitive",
+        "resolved": "12.28.1",
+        "contentHash": "n6WL9zIvfNBQgUbjYugJBhf0fttdIScK89mSNVvF1iKKHvZleN0Y7V+u4e3K38D64PwHTTwEtqVzn8/3nvHTEg==",
+        "dependencies": {
+          "Azure.Core": "1.60.0",
+          "Azure.Storage.Common": "12.29.0"
+        }
+      },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
         "resolved": "10.0.10",
@@ -172,11 +144,6 @@
         "type": "Transitive",
         "resolved": "11.0.0",
         "contentHash": "ugy3NqXfjxD3KFoVX27oRxdLeCnhGE1kMkdowetalYaqBqiokPgJ/POODN+9fy33eLVd3qtAfLIDAXE3dmGspw=="
-      },
-      "Microsoft.Extensions.DependencyModel": {
-        "type": "Transitive",
-        "resolved": "10.0.0",
-        "contentHash": "RFYJR7APio/BiqdQunRq6DB+nDB6nc2qhHr77mlvZ0q0BT8PubMXN7XicmfzCbrDE/dzhBnUKBRXLTcqUiZDGg=="
       },
       "Microsoft.Extensions.Diagnostics.ExceptionSummarization": {
         "type": "Transitive",
@@ -488,11 +455,6 @@
           "Microsoft.IdentityModel.JsonWebTokens": "8.23.0",
           "Microsoft.IdentityModel.Tokens": "8.23.0"
         }
-      },
-      "System.Interactive.Async": {
-        "type": "Transitive",
-        "resolved": "7.0.1",
-        "contentHash": "oL1iox7sAJL8i+muGzVMQjDB0axQgOoT5CkwYdap8cQJMkWDWMRErNqhOcZkn31+aKr/uCfgMEdhUARCU4G7gg=="
       },
       "System.IO.Hashing": {
         "type": "Transitive",

@@ -19,12 +19,16 @@ terraform apply
 |---|---|---|
 | `minibank-accounts-api-<suffix>` | `src/AccountsApi` | Exposes the `Accounts.Read` delegated scope under `api://minibank-accounts-api`. |
 | `minibank-payments-api-<suffix>` | `src/PaymentsApi` | Exposes the `Payment.Create` delegated scope under `api://minibank-payments-api`. |
-| `minibank-client-<suffix>` | `src/MiniBankClient`, Swagger UI | Public client for the MSAL device-code flow and Swagger UI's browser-based authorization-code flow. |
+| `minibank-client-<suffix>` | Swagger UI in both APIs | Public SPA client for browser-based authorization-code flow with PKCE. |
 
 Admin consent for the client's delegated permissions is granted automatically
-(`var.grant_admin_consent`, default `true`) so the device-code flow doesn't
-prompt for consent on first run. Set it to `false` if the deploying principal
+(`var.grant_admin_consent`, default `true`) so API permissions do not require
+consent on first use. Set it to `false` if the deploying principal
 isn't a Global/Privileged Role Administrator, and consent manually instead.
+
+The client registration also supports native public clients and includes
+Microsoft Graph `User.Read`. Swagger UI uses the SPA redirects and each API's
+delegated scope.
 
 Swagger UI redeems authorization codes from its browser UI at
 `/swagger/oauth2-redirect.html`. Terraform registers that path on each API's
@@ -36,23 +40,23 @@ application's **Single-page application** platform. Change
 
 ## After applying
 
-Use the outputs to update the three `appsettings.json` files (or the
+Use the outputs to update both APIs' `appsettings.json` files (or the
 equivalent environment variables / user secrets) with the new tenant's IDs:
 
-- `tenant_id` -> `Entra:TenantId` in all three apps.
+- `tenant_id` -> `Entra:TenantId` in both APIs, and the tenant segment of
+  `Entra:Authority` in PaymentsApi.
 - `accounts_api_client_id` -> `Entra:ClientId` in `src/AccountsApi`.
 - `payments_api_client_id` -> `Entra:ClientId` in `src/PaymentsApi`.
-- `client_client_id` -> `Entra:ClientId` in `src/MiniBankClient`, and also
-  `SwaggerUi:ClientId` in `src/AccountsApi/appsettings.json` and
-  `src/PaymentsApi/appsettings.json` (Swagger UI reuses the same public SPA
-  app registration for its browser-based authorization-code + PKCE flow).
+- `client_client_id` -> `SwaggerUi:ClientId` in both APIs (Swagger UI uses
+  the same public SPA app registration for its browser-based
+  authorization-code + PKCE flow).
 
-The `Entra:Audience` / `Entra:Domain` values only need to change if you also
-change `accounts_api_identifier_uri` / `payments_api_identifier_uri` from
-their defaults.
+Set `Entra:Audience` to the corresponding API's identifier URI and update
+`Entra:Domain` if the tenant domain changes. If you customize the identifier URIs,
+also update the scope strings in each API's OpenAPI document transformer.
 
 The API app registrations expose delegated scopes under their App ID URIs
 (`api://minibank-accounts-api` and `api://minibank-payments-api` by default),
-which is what `MiniBankClient` requests. Entra access tokens can still emit the
+which Swagger UI uses when requesting scopes. Entra access tokens can still emit the
 API application's client ID in the JWT `aud` claim, so the APIs validate both
 their configured App ID URI and `Entra:ClientId`.

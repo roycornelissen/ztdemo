@@ -1,6 +1,8 @@
-# Terraform migration scaffold
+# Terraform infrastructure
 
-This folder implements the migration layout described in `../TERRAFORM_MIGRATION_PLAN.md`.
+This folder provisions the Azure infrastructure for MiniBank. Aspire handles
+local orchestration; these Terraform configurations model the Azure deployment,
+including Container Apps, workload identities, networking and storage.
 
 ## AVM alignment
 
@@ -17,6 +19,7 @@ This is still a migration scaffold rather than a published AVM module repository
 ## Layout
 
 - `envs/dev` contains the root configuration and environment wiring.
+- `entraid` contains the separately deployed API and Swagger UI app registrations.
 - `modules/*` contains the Terraform modules that match the Minibank deployment order and Azure resource grouping.
 
 ## Initial setup
@@ -33,6 +36,12 @@ terraform plan
 
 The backend block is intentionally a template for the dedicated AzureRM remote state storage account.
 Update the backend fields before the first production apply.
+
+Publish the workload images with `dotnet publish -t:PublishContainer`, using the
+registry, repository names and tags referenced in `envs/dev/main.tf`. See the
+[container publishing commands](../../README.md#container-images). Terraform
+does not build images. The firewall and Application Gateway modules are
+intentionally not enabled in the development environment.
 
 ## Zero Trust storage sample
 

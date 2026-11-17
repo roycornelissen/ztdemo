@@ -1,5 +1,4 @@
-# Well-known Microsoft Graph application, used to grant the MiniBankClient
-# the delegated User.Read permission it requests before calling the APIs.
+# Microsoft Graph User.Read is retained for optional native clients.
 data "azuread_application_published_app_ids" "well_known" {}
 
 data "azuread_service_principal" "msgraph" {
@@ -69,8 +68,7 @@ resource "azuread_service_principal" "payments_api" {
 }
 
 # ---------------------------------------------------------------------------
-# MiniBankClient (src/MiniBankClient) - public client using the MSAL device
-# code flow, requesting user.read plus each API's exposed delegated scope.
+# Swagger UI SPA client, also retaining support for optional native clients.
 # ---------------------------------------------------------------------------
 resource "azuread_application" "client" {
   display_name                   = "minibank-client-${var.app_suffix}"
@@ -118,8 +116,7 @@ resource "azuread_service_principal" "client" {
 }
 
 # ---------------------------------------------------------------------------
-# Optional admin consent, so the device-code flow does not prompt for consent
-# the first time MiniBankClient is run against the new tenant.
+# Optional admin consent for the public client's delegated permissions.
 # ---------------------------------------------------------------------------
 resource "azuread_service_principal_delegated_permission_grant" "client_to_msgraph" {
   count = var.grant_admin_consent ? 1 : 0

@@ -23,10 +23,10 @@ jobs:
           dotnet-version: "11.0.x"
 
       - name: Restore with locked mode
-        run: dotnet restore src/MiniBank.sln --locked-mode
+        run: dotnet restore src/MiniBank.slnx --locked-mode
 
       - name: Audit NuGet packages for known vulnerabilities
-        run: dotnet list src/MiniBank.sln package --vulnerable --include-transitive 2>&1 | tee vulnerable-packages.log
+        run: dotnet list src/MiniBank.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable-packages.log
 
       - name: Fail if vulnerable packages are found
         run: |

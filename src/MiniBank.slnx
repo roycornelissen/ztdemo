@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AccountsApi/AccountsApi.csproj" />
+  <Project Path="Infrastructure/Infrastructure.csproj" />
+  <Project Path="MiniBank.AppHost/MiniBank.AppHost.csproj" />
+  <Project Path="MiniBank.ServiceDefaults/MiniBank.ServiceDefaults.csproj" />
+  <Project Path="Models/Models.csproj" />
+  <Project Path="PaymentsApi/PaymentsApi.csproj" />
+  <Project Path="PaymentsApiTests/PaymentsApiTests.csproj" />
+  <Project Path="Processing/Processing.csproj" />
+  <Project Path="ProcessingTests/ProcessingTests.csproj" />
+</Solution>
