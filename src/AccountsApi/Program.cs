@@ -4,12 +4,15 @@ using Azure.Identity;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+IdentityModelEventSource.ShowPII = builder.Environment.IsDevelopment();
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -35,6 +38,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
     {
+        options.IncludeErrorDetails = builder.Environment.IsDevelopment();
         options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     }, entra =>
@@ -44,7 +48,7 @@ builder.Services
 
 var requiredScope = builder.Configuration["Entra:Scopes"]
     ?? throw new InvalidOperationException("Entra:Scopes must be configured.");
-builder.Services.AddDelegatedScopeAuthorization("Accounts.Read", requiredScope);
+builder.Services.AddDelegatedScopeAuthorization(requiredScope);
 
 builder.Services.AddOpenApi(options =>
 {
@@ -152,7 +156,8 @@ app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accou
         return Results.Ok(result);
     })
     .WithName("GetAccounts")
-    .RequireAuthorization("Accounts.Read");
+    .RequireAuthorization()
+    .RequireScope(requiredScope);
 
 app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsRepository accountsRepository, [Range(1, uint.MaxValue)] uint id) =>
 {
@@ -175,7 +180,8 @@ app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsReposit
     return Results.Ok(account);
 })
     .WithName("GetAccount")
-    .RequireAuthorization("Accounts.Read");
+    .RequireAuthorization()
+    .RequireScope(requiredScope);
 
 app.MapDefaultEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();

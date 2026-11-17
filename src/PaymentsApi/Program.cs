@@ -3,6 +3,8 @@ using Azure.Core;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
 using Models.Payments;
@@ -13,6 +15,8 @@ using PaymentsApi.Payments;
 //DEMO: Use WebApplication.CreateSlimBuilder(args) to create a minimal builder without the default services and middleware. This is useful for microservices that don't need MVC, Razor Pages, or other features. However, it also means you have to add any required services and middleware manually.
 var builder = WebApplication.CreateBuilder(args);
 //var builder = WebApplication.CreateSlimBuilder(args);
+
+IdentityModelEventSource.ShowPII = builder.Environment.IsDevelopment();
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -56,13 +60,14 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.IncludeErrorDetails = builder.Environment.IsDevelopment();
         options.Authority = authority;
         options.MapInboundClaims = false;
         options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     });
 
-builder.Services.AddDelegatedScopeAuthorization("Payment.Create", requiredScope);
+builder.Services.AddDelegatedScopeAuthorization(requiredScope);
 
 builder.Services.AddOpenApi(options =>
 {
@@ -176,7 +181,8 @@ app.MapPost("/payment",
                 ? Results.Accepted() 
                 : result.Error.ToApiResult();
         })
-    .RequireAuthorization("Payment.Create");
+    .RequireAuthorization()
+    .RequireScope(requiredScope);
 
 app.Run();
 

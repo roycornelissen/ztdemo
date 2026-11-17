@@ -483,8 +483,10 @@
         "type": "Project",
         "dependencies": {
           "Azure.Core": "[1.65.0, )",
+          "Azure.Identity": "[1.21.0, )",
           "Microsoft.Extensions.Http.Resilience": "[11.0.0, )",
           "Microsoft.Extensions.ServiceDiscovery": "[11.0.0, )",
+          "Microsoft.Identity.Web": "[4.18.0, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.21.0, )",
           "OpenTelemetry.Extensions.Hosting": "[1.21.0, )",
           "OpenTelemetry.Instrumentation.AspNetCore": "[1.21.0, )",

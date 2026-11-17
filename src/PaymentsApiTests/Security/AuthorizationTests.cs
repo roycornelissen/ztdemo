@@ -1,11 +1,21 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text;
+using Models.Payments;
+using NSubstitute;
+using PaymentsApi.Payments;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Shouldly;
 
 namespace PaymentsApiTests.Security;
 
-public class AuthorizationTests
+[TestFixture(false)]
+[TestFixture(true)]
+public class AuthorizationTests(bool mapInboundClaims)
 {
     private PaymentsApiFactory factory = null!;
     private HttpClient client = null!;
@@ -13,7 +23,15 @@ public class AuthorizationTests
     [SetUp]
     public void SetUp()
     {
-        factory = new PaymentsApiFactory();
+        var handler = Substitute.For<IHandlePayments>();
+        handler.Handle(Arg.Any<Payment>(), Arg.Any<ClaimsPrincipal>(), Arg.Any<CancellationToken>())
+            .Returns(info => info.Arg<Payment>());
+        factory = new PaymentsApiFactory(services =>
+        {
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme,
+                options => options.MapInboundClaims = mapInboundClaims);
+            services.AddSingleton(handler);
+        });
         client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost")
@@ -48,8 +66,10 @@ public class AuthorizationTests
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
-    [TestCase("Payment.Create", "scp")]
-    [TestCase("Accounts.Read Payment.Create", "scope")]
+    [TestCase("Payment.Create", ClaimConstants.Scp)]
+    [TestCase("Accounts.Read Payment.Create", ClaimConstants.Scp)]
+    [TestCase("Payment.Create", ClaimConstants.Scope)]
+    [TestCase("Accounts.Read Payment.Create", ClaimConstants.Scope)]
     public async Task An_exact_delegated_scope_grants_access(string scope, string claimType)
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -58,11 +78,12 @@ public class AuthorizationTests
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Test]
-    public async Task An_application_role_is_not_a_delegated_scope()
+    [TestCase("roles")]
+    [TestCase("scope")]
+    public async Task Other_claim_types_do_not_grant_delegated_access(string claimType)
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer", PaymentsApiFactory.CreateToken(claimType: "roles"));
+            "Bearer", PaymentsApiFactory.CreateToken(claimType: claimType));
         using var response = await client.GetAsync("/test-endpoint");
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
@@ -77,6 +98,25 @@ public class AuthorizationTests
                 audience: wrongAudience ? "another-api" : null, expired: expired, wrongSignature: wrongSignature));
         using var response = await client.GetAsync("/test-endpoint");
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [TestCase("Payment.Create", HttpStatusCode.Accepted)]
+    [TestCase("Accounts.Read Payment.Create", HttpStatusCode.Accepted)]
+    [TestCase(null, HttpStatusCode.Forbidden)]
+    [TestCase("Accounts.Read", HttpStatusCode.Forbidden)]
+    [TestCase("Payment.Create.Extra", HttpStatusCode.Forbidden)]
+    [TestCase("payment.create", HttpStatusCode.Forbidden)]
+    public async Task Payment_endpoint_enforces_its_declared_scope(string? scope, HttpStatusCode expected)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken(scope));
+        using var content = new StringContent(
+            """{"fromAccountId":1,"toAccountId":2,"amount":100,"description":"Demo"}""",
+            Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync("/payment", content);
+
+        response.StatusCode.ShouldBe(expected);
     }
 
     [Test]

@@ -8,8 +8,39 @@ using Shouldly;
 
 namespace PaymentsApiTests.Security;
 
+[NonParallelizable]
 public class SecurityEventTests
 {
+    [TestCase("Development", true)]
+    [TestCase("Staging", false)]
+    [TestCase("Production", false)]
+    public async Task Authentication_diagnostics_are_enabled_only_in_development(string environment, bool expected)
+    {
+        using var factory = new PaymentsApiFactory(environment: environment);
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken(expired: true));
+
+        using var response = await client.GetAsync("/test-endpoint");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        var challenge = response.Headers.WwwAuthenticate.Single();
+        challenge.Scheme.ShouldBe("Bearer");
+        if (expected)
+        {
+            challenge.Parameter.ShouldNotBeNull();
+            challenge.Parameter.ShouldContain("error=\"invalid_token\"");
+            challenge.Parameter.ShouldContain("error_description=");
+            challenge.Parameter.ShouldContain("expired");
+        }
+        else
+        {
+            challenge.Parameter.ShouldBeNull();
+        }
+        IdentityModelEventSource.ShowPII.ShouldBe(expected);
+        IdentityModelEventSource.LogCompleteSecurityArtifact.ShouldBeFalse();
+    }
+
     [Test]
     public async Task Denials_are_correlatable_without_logging_tokens_or_raw_urls()
     {
@@ -30,7 +61,7 @@ public class SecurityEventTests
         entry.Message.ShouldContain("0123456789abcdef0123456789abcdef");
         entry.Message.ShouldNotContain("private-value");
         entry.Message.ShouldNotContain(token);
-        IdentityModelEventSource.ShowPII.ShouldBeFalse();
+        IdentityModelEventSource.ShowPII.ShouldBeTrue();
         IdentityModelEventSource.LogCompleteSecurityArtifact.ShouldBeFalse();
     }
 

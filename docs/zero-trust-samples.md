@@ -39,12 +39,21 @@ with a deployed security boundary.
 
 ## 1. Deny by default, then grant an exact delegated permission
 
-`src/MiniBank.ServiceDefaults/AuthorizationExtensions.cs` creates a shared policy
-for each API. Both the default policy (bare `RequireAuthorization`) and fallback
-policy (forgotten endpoint metadata) require authentication **and** the API's exact,
-case-sensitive delegated scope. A `roles` claim does not substitute for `scp`.
-Existing resource ownership checks remain necessary: scope permission alone does
-not authorize debiting somebody else's account.
+The account and payment endpoints declare `.RequireAuthorization()` and
+`.RequireScope(requiredScope)` using Microsoft.Identity.Web. `RequireScope` adds
+endpoint metadata; it must be paired with `RequireAuthorization` to enforce it.
+`src/MiniBank.ServiceDefaults/AuthorizationExtensions.cs` registers the scope
+handler with `AddRequiredScopeAuthorization` and keeps a scope-protected fallback
+policy for endpoints without authorization metadata. Explicitly authorized
+endpoints must declare their required scopes; bare `RequireAuthorization()`
+requires authentication but does not select a scope by itself. Scope matching is
+exact and case-sensitive. The handler checks both raw `scp` and mapped
+`http://schemas.microsoft.com/identity/claims/scope` claims and handles
+space-delimited scope values. Unlike the previous custom assertion, it does not
+accept a literal `scope` claim; Entra tokens use `scp`. A `roles` claim does not
+substitute for a delegated scope. Existing resource ownership checks remain
+necessary: scope permission alone does not authorize debiting somebody else's
+account.
 
 In PaymentsApi, `/test-endpoint` deliberately has no authorization metadata so the
 fallback can be demonstrated. Without a token it returns 401; with a valid token
@@ -132,9 +141,13 @@ arbitrary forwarded headers to identify callers.
 
 ## 4. Detect abuse without copying secrets into telemetry
 
-The APIs no longer enable IdentityModel `ShowPII` or
-`LogCompleteSecurityArtifact`, even in Development. Developer logs often reach
-shared dashboards and should not become an alternative token/PII store.
+Both APIs enable JWT bearer `IncludeErrorDetails` and IdentityModel `ShowPII`
+only when `Environment.IsDevelopment()` is true. This exposes authentication
+failure details in the `WWW-Authenticate` response header and allows PII in
+IdentityModel diagnostics for local troubleshooting. Both settings are disabled
+in all other environments. `LogCompleteSecurityArtifact` remains disabled, so
+full security artifacts such as tokens are not enabled for logging. Development
+logs may contain sensitive identity data; do not send them to shared dashboards.
 
 `UseSecurityEventLogging` emits structured event **1000 / RequestRejected** for
 401/403/429 outcomes, with status, **route template** and W3C trace ID. It does not
