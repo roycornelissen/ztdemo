@@ -30,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AccountsApi\AccountsApi.csproj" />
       <ProjectReference Include="..\PaymentsApi\PaymentsApi.csproj" />
     </ItemGroup>
 

@@ -65,14 +65,14 @@ public class SecurityEventTests
         IdentityModelEventSource.LogCompleteSecurityArtifact.ShouldBeFalse();
     }
 
-    private sealed class RecordingLoggerProvider : ILoggerProvider
+    internal sealed class RecordingLoggerProvider : ILoggerProvider
     {
         public ConcurrentQueue<LogEntry> Entries { get; } = new();
         public ILogger CreateLogger(string categoryName) => new RecordingLogger(categoryName, Entries);
         public void Dispose() { }
     }
 
-    private sealed record LogEntry(string Category, EventId EventId, string Message);
+    internal sealed record LogEntry(string Category, EventId EventId, string Message);
 
     private sealed class RecordingLogger(string category, ConcurrentQueue<LogEntry> entries) : ILogger
     {

@@ -11,8 +11,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-IdentityModelEventSource.ShowPII = builder.Environment.IsDevelopment();
-
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
@@ -38,12 +36,16 @@ builder.Services
     .AddMicrosoftIdentityWebApi(options =>
     {
         options.IncludeErrorDetails = builder.Environment.IsDevelopment();
+        options.MapInboundClaims = false;
         options.TokenValidationParameters.NameClaimType = "preferred_username";
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     }, entra =>
     {
         builder.Configuration.Bind("Entra", entra);
     });
+
+// Microsoft.Identity.Web resets ShowPII during registration.
+IdentityModelEventSource.ShowPII = builder.Environment.IsDevelopment();
 
 var requiredScope = builder.Configuration["Entra:Scopes"]
     ?? throw new InvalidOperationException("Entra:Scopes must be configured.");

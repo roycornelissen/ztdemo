@@ -49,6 +49,7 @@ storage.OnResourceReady(async (_, _, cancellationToken) =>
 });
 
 var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
     .WithReference(accountsTable)
     .WaitFor(accountsTable)
     .WithHttpHealthCheck("/healthz")
@@ -59,6 +60,7 @@ var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
     });
 
 var paymentsApi = builder.AddProject<Projects.PaymentsApi>("paymentsapi")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
     .WithReference(storageQueues)
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)

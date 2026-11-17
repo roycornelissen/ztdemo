@@ -13,7 +13,7 @@ namespace PaymentsApiTests.Security;
 
 public sealed class PaymentsApiFactory(
     Action<IServiceCollection>? configureServices = null, string environment = "Development")
-    : WebApplicationFactory<Program>
+    : WebApplicationFactory<PaymentsApi.Payments.PaymentHandler>
 {
     private const string Issuer = "https://issuer.example.test";
     private const string Audience = "minibank-test";
@@ -30,24 +30,27 @@ public sealed class PaymentsApiFactory(
         builder.ConfigureServices(services =>
         {
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
-            {
-                // Offline issuer configuration; production JWT validation is not replaced by a fake scheme.
-                options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(
-                    new OpenIdConnectConfiguration { Issuer = Issuer });
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = Key,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+                ConfigureOfflineValidation(options));
             configureServices?.Invoke(services);
         });
+    }
+
+    internal static void ConfigureOfflineValidation(JwtBearerOptions options)
+    {
+        // Offline issuer configuration; production JWT validation is not replaced by a fake scheme.
+        options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(
+            new OpenIdConnectConfiguration { Issuer = Issuer });
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = Issuer,
+            ValidateAudience = true,
+            ValidAudience = Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = Key,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
     }
 
     public static string CreateToken(

@@ -68,7 +68,11 @@ exceptions; OpenAPI/Swagger remain Development-only.
 Account ownership uses the authenticated Entra `tid` and `oid` claims, not the
 mutable `preferred_username` display/login value. Both claims must occur exactly
 once and contain non-empty GUIDs; missing, malformed, or ambiguous identity fails
-closed before account access. The Accounts API filters on both owner fields and
+closed before account access. Both APIs disable inbound claim mapping so these
+names remain unchanged in the `ClaimsPrincipal`. The scope handler also accepts
+mapped scope claims, but a correctly scoped token cannot pass ownership checks
+if `tid` and `oid` have been renamed by inbound mapping.
+The Accounts API filters on both owner fields and
 checks ownership again for individual reads. The Payments API carries the stable
 owner in its queue event; account responses do not serialize owner identifiers.
 
@@ -152,6 +156,15 @@ IdentityModel diagnostics for local troubleshooting. Both settings are disabled
 in all other environments. `LogCompleteSecurityArtifact` remains disabled, so
 full security artifacts such as tokens are not enabled for logging. Development
 logs may contain sensitive identity data; do not send them to shared dashboards.
+
+AccountsApi sets `ShowPII` **after** `AddMicrosoftIdentityWebApi`, because that
+registration resets the static flag. Setting the environment to Development
+alone does not prevent that reset. Development configuration enables Debug logs
+for `Microsoft.AspNetCore.Authentication` and `Microsoft.AspNetCore.Authorization`
+in both APIs so failed authorization requirements are visible instead of only the
+generic 403 security event. `IncludeErrorDetails` applies to authentication
+failures (401), not authorization denials (403); use the server logs for those.
+Restart the API processes after changing startup diagnostics or claim mapping.
 
 `UseSecurityEventLogging` emits structured event **1000 / RequestRejected** for
 401/403/429 outcomes, with status, **route template** and W3C trace ID. It does not
