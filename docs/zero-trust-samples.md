@@ -87,6 +87,12 @@ The local Aspire seed requires
 `MiniBank:DemoOwnerTenantId` and `MiniBank:DemoOwnerObjectId` configuration with
 the exact Entra identity used to authenticate; use non-secret app-host user
 secrets or environment variables. These IDs are identifiers, not credentials.
+Accounts 1 and 2 belong to that configured owner. The optional
+`MiniBank:AdditionalDemoOwnerObjectId` seeds accounts 3 and 4 for a second user
+in the same tenant, without changing accounts 1 and 2. Development configuration
+sets this second owner to `b1929754-4fe7-4dad-b297-062167269d28`.
+Each owner gets an Everyday account and a Savings account. The seed upserts these
+fixed account IDs on AppHost startup and leaves other account rows untouched.
 
 The integration tests use locally signed JWTs and an offline issuer configuration
 inside the test host only, retaining the actual bearer signature, audience,

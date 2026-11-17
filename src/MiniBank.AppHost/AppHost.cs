@@ -4,7 +4,7 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
-var (demoOwnerTenantId, demoOwnerObjectId) = GetDemoOwner(builder.Configuration);
+var (demoOwnerTenantId, demoOwnerObjectIds) = GetDemoOwners(builder.Configuration);
 
 // Local emulator for Azure Storage (Queues + Tables) used by AccountsApi, PaymentsApi and Processing.
 var storage = builder.AddAzureStorage("storage")
@@ -28,22 +28,25 @@ storage.OnResourceReady(async (_, _, cancellationToken) =>
     var accounts = tableServiceClient.GetTableClient("accounts");
 
     await accounts.CreateIfNotExistsAsync(cancellationToken);
-    await accounts.UpsertEntityAsync(
-        new TableEntity("accounts", "1")
-        {
-            ["Description"] = "Everyday account",
-            ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
-            ["OwnerObjectId"] = demoOwnerObjectId.ToString("D")
-        },
-        cancellationToken: cancellationToken);
-    await accounts.UpsertEntityAsync(
-        new TableEntity("accounts", "2")
-        {
-            ["Description"] = "Savings account",
-            ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
-            ["OwnerObjectId"] = demoOwnerObjectId.ToString("D")
-        },
-        cancellationToken: cancellationToken);
+    for (var ownerIndex = 0; ownerIndex < demoOwnerObjectIds.Length; ownerIndex++)
+    {
+        await accounts.UpsertEntityAsync(
+            new TableEntity("accounts", (ownerIndex * 2 + 1).ToString())
+            {
+                ["Description"] = "Everyday account",
+                ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
+                ["OwnerObjectId"] = demoOwnerObjectIds[ownerIndex].ToString("D")
+            },
+            cancellationToken: cancellationToken);
+        await accounts.UpsertEntityAsync(
+            new TableEntity("accounts", (ownerIndex * 2 + 2).ToString())
+            {
+                ["Description"] = "Savings account",
+                ["OwnerTenantId"] = demoOwnerTenantId.ToString("D"),
+                ["OwnerObjectId"] = demoOwnerObjectIds[ownerIndex].ToString("D")
+            },
+            cancellationToken: cancellationToken);
+    }
 
     await tableServiceClient.CreateTableIfNotExistsAsync("transactions", cancellationToken);
 });
@@ -81,7 +84,7 @@ builder.AddProject<Projects.Processing>("processing")
 
 builder.Build().Run();
 
-static (Guid TenantId, Guid ObjectId) GetDemoOwner(IConfiguration configuration)
+static (Guid TenantId, Guid[] ObjectIds) GetDemoOwners(IConfiguration configuration)
 {
     if (!Guid.TryParse(configuration["MiniBank:DemoOwnerTenantId"], out var tenantId) ||
         tenantId == Guid.Empty)
@@ -97,5 +100,18 @@ static (Guid TenantId, Guid ObjectId) GetDemoOwner(IConfiguration configuration)
             "MiniBank:DemoOwnerObjectId must be set to the demo user's Entra object ID.");
     }
 
-    return (tenantId, objectId);
+    var additionalOwner = configuration["MiniBank:AdditionalDemoOwnerObjectId"];
+    if (additionalOwner is null)
+    {
+        return (tenantId, [objectId]);
+    }
+
+    if (!Guid.TryParse(additionalOwner, out var additionalObjectId) ||
+        additionalObjectId == Guid.Empty)
+    {
+        throw new InvalidOperationException(
+            "MiniBank:AdditionalDemoOwnerObjectId must be a non-empty Entra object ID when configured.");
+    }
+
+    return (tenantId, [objectId, additionalObjectId]);
 }
