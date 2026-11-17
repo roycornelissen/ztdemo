@@ -410,3 +410,7 @@ FodyWeavers.xsd
 *.private.env.json
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# draw.io recovery and backup files
+*.drawio.bkp
+*.drawio.bak
