@@ -40,6 +40,7 @@ output "client_requested_scopes" {
   value = [
     "user.read",
     "${var.accounts_api_identifier_uri}/Accounts.Read",
-    "${var.payments_api_identifier_uri}/Payment.Create",
+    "${var.payments_api_identifier_uri}/Payment.Read",
+    "${var.payments_api_identifier_uri}/Payment.Write",
   ]
 }

@@ -51,13 +51,18 @@ public sealed class PaymentsApiFactory(
     }
 
     public static string CreateToken(
-        string? scope = "Payment.Create", string? audience = null, bool expired = false,
-        string claimType = "scp", bool wrongSignature = false)
+        string? scope = "Payment.Read", string? audience = null, bool expired = false,
+        string claimType = "scp", bool wrongSignature = false, bool includeOwner = false)
     {
         var claims = new List<Claim> { new("sub", "demo-user") };
         if (scope is not null)
         {
             claims.Add(new Claim(claimType, scope));
+        }
+        if (includeOwner)
+        {
+            claims.Add(new Claim("tid", TenantId.ToString()));
+            claims.Add(new Claim("oid", ObjectId.ToString()));
         }
 
         var key = wrongSignature

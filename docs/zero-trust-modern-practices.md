@@ -92,7 +92,8 @@ and [claims challenges](https://learn.microsoft.com/entra/identity-platform/clai
 
 ## 3. Authorize the resource and its current state
 
-A valid token with `Payment.Create` is necessary, but not sufficient. Continue
+A valid token with `Payment.Write` is necessary to submit a payment, but not
+sufficient. Continue
 checking account ownership and add checks for the current operation: account
 status, permitted beneficiary, transaction limits and any required approval.
 The worker now revalidates the queued payment and current source-account owner

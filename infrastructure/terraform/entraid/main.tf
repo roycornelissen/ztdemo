@@ -37,9 +37,15 @@ resource "azuread_service_principal" "accounts_api" {
 }
 
 # ---------------------------------------------------------------------------
-# Payments API (src/PaymentsApi) - exposes the Payment.Create delegated scope.
+# Payments API (src/PaymentsApi) - exposes delegated read and write scopes.
 # ---------------------------------------------------------------------------
-resource "random_uuid" "payments_create_scope" {}
+resource "random_uuid" "payments_read_scope" {}
+resource "random_uuid" "payments_write_scope" {}
+
+moved {
+  from = random_uuid.payments_create_scope
+  to   = random_uuid.payments_write_scope
+}
 
 resource "azuread_application" "payments_api" {
   display_name     = "minibank-payments-api-${var.app_suffix}"
@@ -51,12 +57,23 @@ resource "azuread_application" "payments_api" {
     requested_access_token_version = 2
 
     oauth2_permission_scope {
-      id                         = random_uuid.payments_create_scope.result
-      admin_consent_description  = "Allows the app to create payments on behalf of the signed-in user."
-      admin_consent_display_name = "Create payments"
-      user_consent_description   = "Allows the app to create payments on your behalf."
-      user_consent_display_name  = "Create payments on your behalf"
-      value                      = "Payment.Create"
+      id                         = random_uuid.payments_read_scope.result
+      admin_consent_description  = "Allows the app to access payment read operations on behalf of the signed-in user."
+      admin_consent_display_name = "Read payments"
+      user_consent_description   = "Allows the app to access payment read operations on your behalf."
+      user_consent_display_name  = "Read payments on your behalf"
+      value                      = "Payment.Read"
+      type                       = "User"
+      enabled                    = true
+    }
+
+    oauth2_permission_scope {
+      id                         = random_uuid.payments_write_scope.result
+      admin_consent_description  = "Allows the app to submit payments on behalf of the signed-in user."
+      admin_consent_display_name = "Submit payments"
+      user_consent_description   = "Allows the app to submit payments on your behalf."
+      user_consent_display_name  = "Submit payments on your behalf"
+      value                      = "Payment.Write"
       type                       = "User"
       enabled                    = true
     }
@@ -105,7 +122,12 @@ resource "azuread_application" "client" {
     resource_app_id = azuread_application.payments_api.client_id
 
     resource_access {
-      id   = random_uuid.payments_create_scope.result
+      id   = random_uuid.payments_read_scope.result
+      type = "Scope"
+    }
+
+    resource_access {
+      id   = random_uuid.payments_write_scope.result
       type = "Scope"
     }
   }
@@ -139,5 +161,5 @@ resource "azuread_service_principal_delegated_permission_grant" "client_to_payme
 
   service_principal_object_id          = azuread_service_principal.client.object_id
   resource_service_principal_object_id = azuread_service_principal.payments_api.object_id
-  claim_values                         = ["Payment.Create"]
+  claim_values                         = ["Payment.Read", "Payment.Write"]
 }

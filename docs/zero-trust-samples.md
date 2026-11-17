@@ -39,14 +39,14 @@ with a deployed security boundary.
 
 ## 1. Deny by default, then grant an exact delegated permission
 
-The account and payment endpoints declare `.RequireAuthorization()` and
-`.RequireScope(requiredScope)` using Microsoft.Identity.Web. `RequireScope` adds
-endpoint metadata; it must be paired with `RequireAuthorization` to enforce it.
+The account endpoints declare `.RequireAuthorization()` and
+`.RequireScope(requiredScope)` using Microsoft.Identity.Web. The endpoint
+`RequireScope` method adds metadata and must be paired with `RequireAuthorization`
+to enforce it.
 `src/MiniBank.ServiceDefaults/AuthorizationExtensions.cs` registers the scope
-handler with `AddRequiredScopeAuthorization` and keeps a scope-protected fallback
-policy for endpoints without authorization metadata. Explicitly authorized
-endpoints must declare their required scopes; bare `RequireAuthorization()`
-requires authentication but does not select a scope by itself. Scope matching is
+handler with `AddRequiredScopeAuthorization` and sets the same scope requirement
+on the default and fallback policies. Named policies must declare their own
+scope requirements. Scope matching is
 exact and case-sensitive. The handler checks both raw `scp` and mapped
 `http://schemas.microsoft.com/identity/claims/scope` claims and handles
 space-delimited scope values. Unlike the previous custom assertion, it does not
@@ -57,9 +57,13 @@ account.
 
 In PaymentsApi, `/test-endpoint` deliberately has no authorization metadata so the
 fallback can be demonstrated. Without a token it returns 401; with a valid token
-but the wrong scope, 403; with `Payment.Create`, 200. This changes the previous
-intentionally insecure endpoint to a secure-by-default example. Health probes are
-explicit anonymous exceptions; OpenAPI/Swagger remain Development-only.
+but without `Payment.Read`, 403; with `Payment.Read`, 200. It still returns a fixed
+demo message. `GET /accounts/{accountId}/payments` uses the default `Payment.Read`
+policy and returns processed debit and credit entries from the owned account's
+partition, not queued submissions. Missing and non-owned accounts return 404.
+`POST /payment` requires `Payment.Write` instead of `Payment.Read` and still checks
+that the caller owns the source account. Health probes are explicit anonymous
+exceptions; OpenAPI/Swagger remain Development-only.
 
 Account ownership uses the authenticated Entra `tid` and `oid` claims, not the
 mutable `preferred_username` display/login value. Both claims must occur exactly
@@ -190,6 +194,7 @@ identity; it is **not a secret**. Storage access is scoped as follows:
 |---|---|---|
 | AccountsApi | accounts table | Storage Table Data Reader |
 | PaymentsApi | accounts table | Storage Table Data Reader |
+| PaymentsApi | transactions table | Storage Table Data Reader |
 | PaymentsApi | payments queue | Storage Queue Data Message Sender |
 | Processing | payments queue | Storage Queue Data Message Processor |
 | Processing | accounts table | Storage Table Data Reader |

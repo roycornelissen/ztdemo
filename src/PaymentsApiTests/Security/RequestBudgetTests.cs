@@ -13,6 +13,8 @@ namespace PaymentsApiTests.Security;
 
 public class RequestBudgetTests
 {
+    private const string PaymentSubmissionScope = "Payment.Write";
+
     [Test]
     public async Task The_first_request_over_budget_gets_429_but_liveness_still_works()
     {
@@ -49,7 +51,8 @@ public class RequestBudgetTests
         var json = """{"fromAccountId":1,"toAccountId":2,"amount":100,"description":"Demo"}""";
         var body = Encoding.UTF8.GetBytes(json.PadRight(size));
         using var request = new HttpRequestMessage(HttpMethod.Post, "/payment");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PaymentsApiFactory.CreateToken());
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken(PaymentSubmissionScope));
         request.Content = chunked
             ? new ChunkedContent(body)
             : new ByteArrayContent(body);
@@ -73,7 +76,7 @@ public class RequestBudgetTests
         using var factory = new PaymentsApiFactory(services => services.AddSingleton(handler));
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer", PaymentsApiFactory.CreateToken());
+            "Bearer", PaymentsApiFactory.CreateToken(PaymentSubmissionScope));
 
         using var response = await client.PostAsync("/payment", new StringContent(json, Encoding.UTF8, "application/json"));
 

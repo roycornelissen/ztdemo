@@ -18,7 +18,7 @@ terraform apply
 | App registration | Source | Purpose |
 |---|---|---|
 | `minibank-accounts-api-<suffix>` | `src/AccountsApi` | Exposes the `Accounts.Read` delegated scope under `api://minibank-accounts-api`. |
-| `minibank-payments-api-<suffix>` | `src/PaymentsApi` | Exposes the `Payment.Create` delegated scope under `api://minibank-payments-api`. |
+| `minibank-payments-api-<suffix>` | `src/PaymentsApi` | Exposes `Payment.Read` and `Payment.Write` delegated scopes under `api://minibank-payments-api`. |
 | `minibank-client-<suffix>` | Swagger UI in both APIs | Public SPA client for browser-based authorization-code flow with PKCE. |
 
 Admin consent for the client's delegated permissions is granted automatically
@@ -28,7 +28,13 @@ isn't a Global/Privileged Role Administrator, and consent manually instead.
 
 The client registration also supports native public clients and includes
 Microsoft Graph `User.Read`. Swagger UI uses the SPA redirects and each API's
-delegated scope.
+delegated scopes. PaymentsApi preselects `Payment.Read` for payment history.
+To demo write-only access, deselect it and select `Payment.Write` in the
+Authorize dialog before submitting a payment.
+
+For existing deployments, Terraform reuses the `Payment.Create` permission ID
+for `Payment.Write` and updates the managed consent grant. Sign in again after
+applying to get a fresh token with the new scope names.
 
 Swagger UI redeems authorization codes from its browser UI at
 `/swagger/oauth2-redirect.html`. Terraform registers that path on each API's
@@ -53,7 +59,9 @@ equivalent environment variables / user secrets) with the new tenant's IDs:
 
 Set `Entra:Audience` to the corresponding API's identifier URI and update
 `Entra:Domain` if the tenant domain changes. If you customize the identifier URIs,
-also update the scope strings in each API's OpenAPI document transformer.
+also update the scope string in AccountsApi's OpenAPI document transformer.
+PaymentsApi derives its OpenAPI scope strings from `Entra:Audience`, `Entra:Scopes`
+(`Payment.Read`), and `Entra:WriteScope` (`Payment.Write`).
 
 The API app registrations expose delegated scopes under their App ID URIs
 (`api://minibank-accounts-api` and `api://minibank-payments-api` by default),

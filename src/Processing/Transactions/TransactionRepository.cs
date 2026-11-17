@@ -1,3 +1,4 @@
+using System.Globalization;
 using Azure.Data.Tables;
 
 namespace Processing.Transactions;
@@ -10,9 +11,13 @@ public class TransactionRepository([FromKeyedServices("transactions")] TableClie
     {
         foreach (var transaction in bankTransactions)
         {
-            transaction.PartitionKey = transaction.AccountId.ToString();
-            transaction.RowKey = Guid.NewGuid().ToString();
-            await client.AddEntityAsync(transaction, cancellationToken);
+            var entity = new TableEntity(transaction.AccountId.ToString(CultureInfo.InvariantCulture), Guid.NewGuid().ToString())
+            {
+                ["AccountId"] = transaction.AccountId,
+                ["Amount"] = transaction.Amount.ToString(CultureInfo.InvariantCulture),
+                ["Description"] = transaction.Description
+            };
+            await client.AddEntityAsync(entity, cancellationToken);
         }
     }
 }

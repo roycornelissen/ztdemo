@@ -7,7 +7,6 @@ using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi;
 using Models.Accounts;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -139,46 +138,12 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/accounts", async (HttpContext httpContext, AccountsRepository accountsRepository) =>
-    {
-        if (!AccountOwner.TryFromClaimsPrincipal(httpContext.User, out var owner))
-        {
-            return Results.Forbid();
-        }
-
-        var accounts = accountsRepository.GetAccounts(owner, httpContext.RequestAborted);
-        var result = await accounts.ToArrayAsync(httpContext.RequestAborted);
-
-        if (Array.Exists(result, account => account.Owner != owner))
-        {
-            return Results.Forbid();
-        }
-        return Results.Ok(result);
-    })
+app.MapGet("/accounts", GetAccountsEndpoint.Handle)
     .WithName("GetAccounts")
     .RequireAuthorization()
     .RequireScope(requiredScope);
 
-app.MapGet("/accounts/{id:int}", async (HttpContext httpContext, AccountsRepository accountsRepository, [Range(1, uint.MaxValue)] uint id) =>
-{
-    if (!AccountOwner.TryFromClaimsPrincipal(httpContext.User, out var owner))
-    {
-        return Results.Forbid();
-    }
-
-    var account = await accountsRepository.GetAccount(id, httpContext.RequestAborted);
-
-    if (account == null)
-    {
-        return Results.NotFound();
-    }
-
-    if (account.Owner != owner)
-    {
-        return Results.Forbid();
-    }
-    return Results.Ok(account);
-})
+app.MapGet("/accounts/{id:int}", GetAccountEndpoint.Handle)
     .WithName("GetAccount")
     .RequireAuthorization()
     .RequireScope(requiredScope);

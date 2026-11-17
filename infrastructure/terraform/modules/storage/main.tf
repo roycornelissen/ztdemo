@@ -62,6 +62,12 @@ resource "azurerm_role_assignment" "payments_accounts_reader" {
   principal_id         = var.identity_principal_ids["payments_api"]
 }
 
+resource "azurerm_role_assignment" "payments_transactions_reader" {
+  scope                = azurerm_storage_table.transactions.resource_manager_id
+  role_definition_name = "Storage Table Data Reader"
+  principal_id         = var.identity_principal_ids["payments_api"]
+}
+
 resource "azurerm_private_dns_zone" "table" {
   name                = "privatelink.table.core.windows.net"
   resource_group_name = var.resource_group_name

@@ -13,13 +13,14 @@ public static class AuthorizationExtensions
 
         services.AddRequiredScopeAuthorization();
 
-        var fallbackPolicy = new AuthorizationPolicyBuilder()
+        var scopePolicy = new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()
             .RequireScope(requiredScope)
             .Build();
 
         services.AddAuthorizationBuilder()
-            .SetFallbackPolicy(fallbackPolicy);
+            .SetDefaultPolicy(scopePolicy)
+            .SetFallbackPolicy(scopePolicy);
 
         return services;
     }

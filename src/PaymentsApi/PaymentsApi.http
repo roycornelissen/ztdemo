@@ -1,9 +1,16 @@
 @PaymentsApi_HostAddress = https://localhost:7296
 @auth_token = ""
+@read_token = ""
 
 GET {{PaymentsApi_HostAddress}}/test-endpoint
 Accept: application/json
 Content-Type: application/json
+
+###
+
+GET {{PaymentsApi_HostAddress}}/accounts/1/payments
+Accept: application/json
+Authorization: Bearer {{read_token}}
 
 ###
 

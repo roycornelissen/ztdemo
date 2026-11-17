@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Azure.Core;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Logging;
@@ -9,6 +10,7 @@ using Microsoft.OpenApi;
 using Models.Accounts;
 using Models.Payments;
 using Models.ResultPattern;
+using PaymentsApi;
 using PaymentsApi.Accounts;
 using PaymentsApi.Payments;
 
@@ -40,12 +42,18 @@ var validAudiences = new[]
 
 var authority = builder.Configuration["Entra:Authority"]
     ?? throw new InvalidOperationException("Entra:Authority must be configured.");
-var requiredScope = builder.Configuration["Entra:Scopes"]
+var readScope = builder.Configuration["Entra:Scopes"]
     ?? throw new InvalidOperationException("Entra:Scopes must be configured.");
+var writeScope = builder.Configuration["Entra:WriteScope"]
+    ?? throw new InvalidOperationException("Entra:WriteScope must be configured.");
+var readOAuthScope = $"{builder.Configuration["Entra:Audience"]}/{readScope}";
+var writeOAuthScope = $"{builder.Configuration["Entra:Audience"]}/{writeScope}";
+const string submitPaymentPolicy = "SubmitPayment";
 
 builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
+builder.Services.AddScoped<PaymentHistoryRepository>();
 
 builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
 
@@ -67,7 +75,11 @@ builder.Services
         options.TokenValidationParameters.ValidAudiences = validAudiences;
     });
 
-builder.Services.AddDelegatedScopeAuthorization(requiredScope);
+builder.Services.AddDelegatedScopeAuthorization(readScope);
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(submitPaymentPolicy, policy => policy
+        .RequireAuthenticatedUser()
+        .RequireScope(writeScope));
 
 builder.Services.AddOpenApi(options =>
 {
@@ -76,7 +88,6 @@ builder.Services.AddOpenApi(options =>
     // "Try it out" requests. See UseSwaggerUI below for the client-side (SPA) wiring.
     options.AddDocumentTransformer((document, _, _) =>
     {
-        const string scope = "api://minibank-payments-api/Payment.Create";
         var tenantId = builder.Configuration["Entra:TenantId"]
             ?? throw new InvalidOperationException("Entra:TenantId must be configured to generate the OpenAPI document.");
 
@@ -93,7 +104,8 @@ builder.Services.AddOpenApi(options =>
                     TokenUrl = new Uri($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token"),
                     Scopes = new Dictionary<string, string>
                     {
-                        [scope] = "Create payments"
+                        [readOAuthScope] = "Read payments",
+                        [writeOAuthScope] = "Submit payments"
                     }
                 }
             }
@@ -102,8 +114,26 @@ builder.Services.AddOpenApi(options =>
         document.Security ??= [];
         document.Security.Add(new OpenApiSecurityRequirement
         {
-            [new OpenApiSecuritySchemeReference("EntraID", document)] = [scope]
+            [new OpenApiSecuritySchemeReference("EntraID", document)] = [readOAuthScope]
         });
+
+        return Task.CompletedTask;
+    });
+
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        if (context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<IAuthorizeData>()
+            .Any(metadata => metadata.Policy == submitPaymentPolicy))
+        {
+            operation.Security =
+            [
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("EntraID", context.Document)] = [writeOAuthScope]
+                }
+            ];
+        }
 
         return Task.CompletedTask;
     });
@@ -135,6 +165,13 @@ builder.Services.AddKeyedSingleton("accounts", (provider, _) =>
         "accounts")
 );
 
+builder.Services.AddKeyedSingleton("transactions", (provider, _) =>
+    TableClientFactory.CreateTableClient(
+        provider.GetRequiredService<ITokenCredentialProvider>(),
+        builder.Environment,
+        builder.Configuration,
+        "transactions"));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -153,9 +190,7 @@ if (app.Environment.IsDevelopment())
             options.OAuthClientId(swaggerUiClientId);
             options.OAuthUsePkce();
             options.OAuthScopeSeparator(" ");
-            // Pre-check the API's own delegated scope in the Authorize dialog so the
-            // requested access token includes it without the user manually ticking a box.
-            options.OAuthScopes($"{app.Configuration["Entra:Audience"]}/{app.Configuration["Entra:Scopes"]}");
+            options.OAuthScopes(readOAuthScope);
         }
     });
 }
@@ -169,20 +204,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Intentionally no endpoint policy: the fallback still requires the delegated scope.
-app.MapGet("/test-endpoint",
-    () => Results.Ok("The fallback policy protects this endpoint."));
+app.MapGet("/test-endpoint", TestEndpoint.Handle);
 
-app.MapPost("/payment",
-        async ([FromBody] Payment payment, IHandlePayments handler, HttpContext context,
-            CancellationToken cancellation) =>
-        {
-            var result = await handler.Handle(payment, context.User, cancellation);
-            return result.IsSuccess 
-                ? Results.Accepted() 
-                : result.Error.ToApiResult();
-        })
-    .RequireAuthorization()
-    .RequireScope(requiredScope);
+app.MapGet("/accounts/{accountId}/payments", PaymentHistoryEndpoint.Handle)
+    .RequireAuthorization();
+
+app.MapPost("/payment", SubmitPaymentEndpoint.Handle)
+    .RequireAuthorization(submitPaymentPolicy);
 
 app.Run();
 
@@ -206,6 +234,7 @@ internal static class ErrorResponseExtensions
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(PaymentAcceptedEvent))]
 [JsonSerializable(typeof(AccountOwner))]
+[JsonSerializable(typeof(IAsyncEnumerable<PaymentHistoryEntry>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
