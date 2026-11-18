@@ -65,6 +65,12 @@ partition, not queued submissions. Missing and non-owned accounts return 404.
 that the caller owns the source account. Health probes are explicit anonymous
 exceptions; OpenAPI/Swagger remain Development-only.
 
+Swagger's scope checkboxes do not guarantee a read-only token: Entra can include
+all previously consented scopes for the API, and the shared demo client is
+admin-consented for both payment scopes. See the
+[Swagger consent limitation](../infrastructure/terraform/entraid/README.md#what-it-creates)
+before demonstrating a read-only or write-only token.
+
 Account ownership uses the authenticated Entra `tid` and `oid` claims, not the
 mutable `preferred_username` display/login value. Both claims must occur exactly
 once and contain non-empty GUIDs; missing, malformed, or ambiguous identity fails

@@ -29,8 +29,19 @@ isn't a Global/Privileged Role Administrator, and consent manually instead.
 The client registration also supports native public clients and includes
 Microsoft Graph `User.Read`. Swagger UI uses the SPA redirects and each API's
 delegated scopes. PaymentsApi preselects `Payment.Read` for payment history.
-To demo write-only access, deselect it and select `Payment.Write` in the
-Authorize dialog before submitting a payment.
+The scope checkboxes control the authorization request, not the exact scopes in
+the issued token. [Entra retains previously consented scopes for a resource](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/resources-and-scopes#consent-lifetime),
+and the managed admin consent grant includes both `Payment.Read` and
+`Payment.Write`. Selecting only `Payment.Read` can therefore still produce a
+token with write permission. Signing out, clearing browser storage, or signing
+in again does not revoke that consent.
+
+To demonstrate a read-only or write-only token, use a separate client registration
+whose consent grants for PaymentsApi contain only the intended scope (including
+any user-specific grants). Register the Swagger redirect URI and configure
+`SwaggerUi:ClientId` for that client. The shared client created here remains
+consented for both scopes; changing the Swagger selection alone does not provide
+least-privilege isolation.
 
 For existing deployments, Terraform reuses the `Payment.Create` permission ID
 for `Payment.Write` and updates the managed consent grant. Sign in again after
