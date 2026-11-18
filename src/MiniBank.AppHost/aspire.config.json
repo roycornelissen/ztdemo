@@ -1,5 +1,8 @@
 {
   "appHost": {
     "path": "MiniBank.AppHost.csproj"
+  },
+  "sdk": {
+    "version": "17.0.0"
   }
 }
