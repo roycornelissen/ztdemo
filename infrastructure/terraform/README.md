@@ -48,6 +48,12 @@ intentionally not enabled in the development environment.
 Workload grants are scoped to individual tables/queues, not the storage account.
 The Container Apps module receives nonsecret workload identity client IDs and
 storage endpoints; applications use managed identities outside Development.
+The module uses AzAPI to set each app's
+[managed identity availability](https://learn.microsoft.com/azure/container-apps/managed-identity#control-managed-identity-availability).
+The shared ACR pull identity is set to `None`: Azure can still pull images with
+it, but containers cannot request its tokens. Each app's workload identity is
+set to `Main`, so only its main containers can use it.
+
 See [the sample walkthrough](../../docs/zero-trust-samples.md#5-separate-local-emulator-trust-from-deployed-workload-trust)
 for the role matrix, mock-provider tests, migration impact, and the locked
 AzureRM provider's Shared Key provisioning limitation. Public storage access and

@@ -82,3 +82,33 @@ resource "azurerm_container_app" "this" {
     max_replicas = 2
   }
 }
+
+# AzureRM does not expose identitySettings. Keep the app and registry in AzureRM
+# and manage only the identity lifecycle settings through AzAPI.
+resource "azapi_update_resource" "identity_settings" {
+  for_each = var.container_apps
+
+  type        = "Microsoft.App/containerApps@2025-07-01"
+  resource_id = azurerm_container_app.this[each.key].id
+
+  list_unique_id_property = {
+    "properties.configuration.identitySettings" = "identity"
+  }
+
+  body = {
+    properties = {
+      configuration = {
+        identitySettings = [
+          {
+            identity  = var.container_user_id
+            lifecycle = "None"
+          },
+          {
+            identity  = each.value.identity_id
+            lifecycle = "Main"
+          },
+        ]
+      }
+    }
+  }
+}
