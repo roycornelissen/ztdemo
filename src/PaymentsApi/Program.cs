@@ -64,6 +64,7 @@ builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 

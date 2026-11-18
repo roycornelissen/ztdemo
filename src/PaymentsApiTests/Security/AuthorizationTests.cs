@@ -149,6 +149,20 @@ public class AuthorizationTests(bool mapInboundClaims)
         get.TryGetProperty("security", out _).ShouldBeFalse();
     }
 
+    [TestCase("""{"fromAccountId":"1","toAccountId":2,"amount":100,"description":"Demo"}""")]
+    [TestCase("""{"fromAccountId":1,"toAccountId":"2","amount":100,"description":"Demo"}""")]
+    [TestCase("""{"fromAccountId":1,"toAccountId":2,"amount":"100","description":"Demo"}""")]
+    public async Task Numeric_payment_fields_reject_quoted_numbers(string json)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken("Payment.Write"));
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync("/payment", content);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
     [Test]
     public async Task Health_endpoints_are_anonymous_exceptions()
     {

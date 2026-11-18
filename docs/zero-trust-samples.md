@@ -105,6 +105,11 @@ dotnet test src\ProcessingTests\ProcessingTests.csproj
 
 ## 2. Treat a well-typed payment as untrusted input
 
+PaymentsApi uses `JsonNumberHandling.Strict`: numeric JSON fields must contain
+numbers, not quoted numeric strings. OpenAPI therefore describes numeric inputs
+with a single numeric type, including the payment-history `accountId` route
+parameter, without custom schema transformations.
+
 `uint` rejects negative JSON account IDs, but still admits zero and values the
 signed-32-bit ledger cannot represent. `PaymentValidator` now checks that full
 range, allows only EUR/USD/GBP, and accepts positive amounts up to 1,000,000 with

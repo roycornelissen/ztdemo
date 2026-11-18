@@ -17,6 +17,24 @@ public class PaymentHistoryTests
     private static readonly AccountOwner Owner = new(PaymentsApiFactory.TenantId, PaymentsApiFactory.ObjectId);
 
     [Test]
+    public async Task OpenApi_describes_accountId_as_a_single_integer_type_for_Swagger()
+    {
+        using var factory = new PaymentsApiFactory();
+        using var client = factory.CreateClient();
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+        var parameter = document.RootElement.GetProperty("paths")
+            .GetProperty("/accounts/{accountId}/payments").GetProperty("get")
+            .GetProperty("parameters").EnumerateArray()
+            .Single(parameter => parameter.GetProperty("name").GetString() == "accountId");
+
+        parameter.GetProperty("in").GetString().ShouldBe("path");
+        parameter.GetProperty("required").GetBoolean().ShouldBeTrue();
+        var schema = parameter.GetProperty("schema");
+        schema.GetProperty("type").ValueKind.ShouldBe(JsonValueKind.String);
+        schema.GetProperty("type").GetString().ShouldBe("integer");
+    }
+
+    [Test]
     public async Task Read_scope_returns_only_the_requested_accounts_ledger_entries()
     {
         var accounts = Substitute.For<IAccountsRepository>();
