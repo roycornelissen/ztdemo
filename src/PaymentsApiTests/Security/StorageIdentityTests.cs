@@ -1,7 +1,10 @@
+using System.Net;
+using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
 using Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NSubstitute;
 using Shouldly;
@@ -83,6 +86,39 @@ public class StorageIdentityTests
 
         builder.Configuration["AZURE_CLIENT_ID"] = "00000000-0000-0000-0000-000000000001";
         builder.CreateAzureCredential().ShouldBeOfType<ManagedIdentityCredential>();
+    }
+
+    [TestCase("")]
+    [TestCase("   ")]
+    public async Task Payments_starts_without_an_identity_but_storage_credentials_fail_closed(string clientId)
+    {
+        using var factory = new PaymentsApiFactory(environment: "Production", azureClientId: clientId);
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", PaymentsApiFactory.CreateToken());
+
+        using var response = await client.GetAsync("/test-endpoint");
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var error = Should.Throw<InvalidOperationException>(
+            () => factory.Services.GetRequiredService<ITokenCredentialProvider>());
+        error.Message.ShouldContain("AZURE_CLIENT_ID");
+    }
+
+    [Test]
+    public void Payments_rejects_a_malformed_configured_identity_on_startup()
+    {
+        using var factory = new PaymentsApiFactory(environment: "Production", azureClientId: "not-a-guid");
+        var error = Should.Throw<InvalidOperationException>(() => factory.CreateClient());
+        error.Message.ShouldContain("AZURE_CLIENT_ID");
+    }
+
+    [Test]
+    public void Payments_uses_the_configured_managed_identity()
+    {
+        using var factory = new PaymentsApiFactory(environment: "Production");
+        using var client = factory.CreateClient();
+        factory.Services.GetRequiredService<ITokenCredentialProvider>().Instance
+            .ShouldBeOfType<ManagedIdentityCredential>();
     }
 
     [Test]

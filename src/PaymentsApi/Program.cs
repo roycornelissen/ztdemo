@@ -58,7 +58,16 @@ builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadReq
 builder.Services.AddScoped<IAccountsRepository, AccountsRepository>();
 builder.Services.AddScoped<PaymentHistoryRepository>();
 
-builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
+var missingManagedIdentity = !builder.Environment.IsDevelopment()
+    && string.IsNullOrWhiteSpace(builder.Configuration["AZURE_CLIENT_ID"]);
+if (missingManagedIdentity)
+{
+    builder.Services.AddSingleton<TokenCredential>(_ => builder.CreateAzureCredential());
+}
+else
+{
+    builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
+}
 
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
@@ -177,6 +186,11 @@ builder.Services.AddKeyedSingleton("transactions", (provider, _) =>
         "transactions"));
 
 var app = builder.Build();
+
+if (missingManagedIdentity)
+{
+    app.Logger.LogWarning("AZURE_CLIENT_ID is missing. The application can start, but Azure storage operations will fail until a user-assigned managed identity is configured.");
+}
 
 if (app.Environment.IsDevelopment())
 {

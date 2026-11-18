@@ -24,7 +24,12 @@ For a registry push, authenticate to the registry and also set
 `-p:ContainerRegistry=<registry>.azurecr.io`. Choose a tag that matches the
 deployment configuration; the Terraform development environment currently uses
 `latest`. Container hardening settings remain in the workload project files,
-including the intentionally commented PaymentsApi demo switch.
+including the intentionally commented PaymentsApi demo switches.
+
+For the PaymentsApi image demo, the app can start without `AZURE_CLIENT_ID` in a
+non-Development container. It logs a warning, and storage operations fail until a
+valid user-assigned managed identity and storage endpoints are configured. This
+is not a functional payment deployment; no local credential is used as a fallback.
 
 ## Optional Dependency-Track demo
 

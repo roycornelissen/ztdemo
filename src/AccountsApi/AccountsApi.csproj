@@ -4,9 +4,9 @@
         <TargetFramework>net11.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>aspnet-AccountsApi-d18d1e39-b232-497b-85e3-484204bc5518</UserSecretsId>
-        <InvariantGlobalization>true</InvariantGlobalization>
-		<ContainerFamily>noble-chiseled</ContainerFamily>
+		<UserSecretsId>aspnet-AccountsApi-d18d1e39-b232-497b-85e3-484204bc5518</UserSecretsId>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<ContainerFamily>resolute-chiseled</ContainerFamily>
 		<ContainerUser>app</ContainerUser>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>

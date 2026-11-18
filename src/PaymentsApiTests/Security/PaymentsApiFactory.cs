@@ -14,7 +14,8 @@ namespace PaymentsApiTests.Security;
 public sealed class PaymentsApiFactory(
     Action<IServiceCollection>? configureServices = null,
     string environment = "Development",
-    bool exposeHealthEndpoints = false)
+    bool exposeHealthEndpoints = false,
+    string azureClientId = "00000000-0000-0000-0000-000000000003")
     : WebApplicationFactory<PaymentsApi.Payments.PaymentHandler>
 {
     private const string Issuer = "https://issuer.example.test";
@@ -32,8 +33,7 @@ public sealed class PaymentsApiFactory(
             builder.UseSetting("HealthChecks:ExposeEndpoints", "true");
         }
 
-        // Satisfy non-development startup validation without requesting an Azure token.
-        builder.UseSetting("AZURE_CLIENT_ID", "00000000-0000-0000-0000-000000000003");
+        builder.UseSetting("AZURE_CLIENT_ID", azureClientId);
         builder.ConfigureServices(services =>
         {
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>

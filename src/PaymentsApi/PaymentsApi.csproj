@@ -5,16 +5,18 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-PaymentsApi-f618502b-ea33-46a1-a8ab-b24178d55704</UserSecretsId>
-        <InvariantGlobalization>true</InvariantGlobalization>
+		<InvariantGlobalization>true</InvariantGlobalization>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
-        <!-- DEMO: use noble-chiseled base for locked down image -->
-		<!--
-		<ContainerFamily>noble-chiseled</ContainerFamily>
+		<!--<PublishSelfContained>true</PublishSelfContained>--> 
 		<ContainerUser>app</ContainerUser>
-		-->
-        <!-- Azure.Data.Tables uses reflection-based entity binding and isn't fully trim-compatible. -->
-        <!--<TrimMode>partial</TrimMode>-->
+
+		<!-- DEMO: uncomment these for chiseled runtime-deps. -->
+		<!--<ContainerFamily>resolute-chiseled</ContainerFamily>-->
+
+		<!-- Azure.Data.Tables uses reflection-based entity binding and isn't fully trim-compatible. -->
+        <!--<PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>-->
 
 	</PropertyGroup>
 

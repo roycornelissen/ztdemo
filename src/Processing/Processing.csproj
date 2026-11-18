@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <ContainerFamily>noble-chiseled</ContainerFamily>
+        <ContainerFamily>resolute-chiseled</ContainerFamily>
         <ContainerUser>app</ContainerUser>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     </PropertyGroup>
