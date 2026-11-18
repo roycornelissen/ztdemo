@@ -33,7 +33,7 @@ public class RequestBudgetTests
         rejected.Headers.RetryAfter!.Delta!.Value.ShouldBeGreaterThan(TimeSpan.Zero);
         rejected.Content.Headers.ContentType!.MediaType.ShouldBe("application/problem+json");
 
-        using var health = await client.GetAsync("/healthz");
+        using var health = await client.GetAsync("/health");
         health.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 

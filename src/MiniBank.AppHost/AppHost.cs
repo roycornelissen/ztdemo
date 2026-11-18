@@ -55,7 +55,7 @@ var accountsApi = builder.AddProject<Projects.AccountsApi>("accountsapi")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
     .WithReference(accountsTable)
     .WaitFor(accountsTable)
-    .WithHttpHealthCheck("/healthz")
+    .WithHttpHealthCheck("/health")
     .WithUrlForEndpoint("https", url =>
     {
         url.DisplayText = "Swagger";
@@ -68,7 +68,7 @@ var paymentsApi = builder.AddProject<Projects.PaymentsApi>("paymentsapi")
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
-    .WithHttpHealthCheck("/healthz")
+    .WithHttpHealthCheck("/health")
     .WithUrlForEndpoint("https", url =>
     {
         url.DisplayText = "Swagger";
@@ -80,7 +80,7 @@ builder.AddProject<Projects.Processing>("processing")
     .WithReference(accountsTable)
     .WaitFor(paymentsQueue)
     .WaitFor(accountsTable)
-    .WithHttpHealthCheck("/healthz");
+    .WithHttpHealthCheck("/health");
 
 builder.Build().Run();
 

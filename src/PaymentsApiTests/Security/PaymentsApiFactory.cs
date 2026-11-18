@@ -12,7 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 namespace PaymentsApiTests.Security;
 
 public sealed class PaymentsApiFactory(
-    Action<IServiceCollection>? configureServices = null, string environment = "Development")
+    Action<IServiceCollection>? configureServices = null,
+    string environment = "Development",
+    bool exposeHealthEndpoints = false)
     : WebApplicationFactory<PaymentsApi.Payments.PaymentHandler>
 {
     private const string Issuer = "https://issuer.example.test";
@@ -25,6 +27,11 @@ public sealed class PaymentsApiFactory(
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
+        if (exposeHealthEndpoints)
+        {
+            builder.UseSetting("HealthChecks:ExposeEndpoints", "true");
+        }
+
         // Satisfy non-development startup validation without requesting an Azure token.
         builder.UseSetting("AZURE_CLIENT_ID", "00000000-0000-0000-0000-000000000003");
         builder.ConfigureServices(services =>

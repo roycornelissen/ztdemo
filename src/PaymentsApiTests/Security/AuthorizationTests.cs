@@ -150,9 +150,27 @@ public class AuthorizationTests(bool mapInboundClaims)
     }
 
     [Test]
-    public async Task Liveness_is_an_explicit_anonymous_exception()
+    public async Task Health_endpoints_are_anonymous_exceptions()
     {
-        using var response = await client.GetAsync("/healthz");
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        foreach (var path in new[] { "/health", "/alive" })
+        {
+            using var response = await client.GetAsync(path);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        }
+    }
+
+    [Test]
+    public async Task Production_health_endpoints_are_available_when_enabled()
+    {
+        using var productionFactory = new PaymentsApiFactory(
+            environment: "Production",
+            exposeHealthEndpoints: true);
+        using var productionClient = productionFactory.CreateClient();
+
+        foreach (var path in new[] { "/health", "/alive" })
+        {
+            using var response = await productionClient.GetAsync(path);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        }
     }
 }

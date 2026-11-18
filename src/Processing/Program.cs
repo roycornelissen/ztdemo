@@ -14,8 +14,6 @@ builder.Configuration
 
 builder.AddServiceDefaults();
 
-builder.Services.AddHealthChecks();
-
 builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
 builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
 
@@ -63,6 +61,5 @@ builder.Services.AddHostedService<PaymentMessageProcessor>();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Run();

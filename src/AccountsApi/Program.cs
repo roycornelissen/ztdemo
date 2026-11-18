@@ -90,8 +90,6 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 });
-builder.Services.AddHealthChecks();
-
 builder.Services.AddScoped<AccountsRepository>();
 
 builder.Services.AddSingleton<TokenCredential>(builder.CreateAzureCredential());
@@ -151,7 +149,6 @@ app.MapGet("/accounts/{id:int}", GetAccountEndpoint.Handle)
     .RequireScope(requiredScope);
 
 app.MapDefaultEndpoints();
-app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();
 
 app.Run();
 

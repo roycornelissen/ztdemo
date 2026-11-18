@@ -52,7 +52,6 @@ var readOAuthScope = $"{builder.Configuration["Entra:Audience"]}/{readScope}";
 var writeOAuthScope = $"{builder.Configuration["Entra:Audience"]}/{writeScope}";
 const string submitPaymentPolicy = "SubmitPayment";
 
-builder.Services.AddHealthChecks();
 builder.Services.AddValidation();
 builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = false);
 
@@ -200,7 +199,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
-app.MapHealthChecks("/healthz").AllowAnonymous().DisableRateLimiting();
 
 app.UseSecurityEventLogging();
 app.UseRateLimiter();
