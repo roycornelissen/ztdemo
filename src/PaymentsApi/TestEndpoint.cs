@@ -2,6 +2,8 @@ namespace PaymentsApi;
 
 internal static class TestEndpoint
 {
-    internal static IResult Handle() =>
-        Results.Ok("The fallback policy protects this endpoint.");
+    internal static IResult Handle(HttpContext context) =>
+        context.User.Identity.IsAuthenticated
+            ? Results.Ok("Protected by the fallback policy 🤗")
+            : Results.Ok("😱 You should not see this");
 }
