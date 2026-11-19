@@ -17,6 +17,7 @@ using PaymentsApi.Payments;
 using PaymentsApi.Security;
 
 //DEMO: Use WebApplication.CreateSlimBuilder(args) to create a minimal builder without the default services and middleware. This is useful for microservices that don't need MVC, Razor Pages, or other features. However, it also means you have to add any required services and middleware manually.
+
 var builder = WebApplication.CreateBuilder(args);
 //var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -220,7 +221,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Intentionally no endpoint policy: the fallback still requires the delegated scope.
+// Intentionally no endpoint policy
 app.MapGet("/test-endpoint", TestEndpoint.Handle);
 
 app.MapGet("/accounts/{accountId}/payments", PaymentHistoryEndpoint.Handle)
